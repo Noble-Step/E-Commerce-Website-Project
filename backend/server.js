@@ -37,6 +37,9 @@ const reviewRoutes = require("./routes/reviewRoutes");
 
 const app = express();
 
+// ✅ Trust proxy for Vercel
+app.set('trust proxy', 1);
+
 // Security middleware with Content Security Policy
 app.use(
   helmet({
@@ -73,8 +76,12 @@ app.use(
   })
 );
 
-// Logging middleware
-app.use(httpLogger);
+// ✅ Disable file logging for Vercel (serverless is read-only)
+// app.use(httpLogger); // Commented out - use console.log or cloud logging instead
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
 // Compression middleware
 app.use(
@@ -89,8 +96,13 @@ app.use(
   })
 );
 
-// Rate limiter
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 });
+// Rate limiter with proper proxy configuration
+const limiter = rateLimit({ 
+  windowMs: 15 * 60 * 1000, 
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 app.use("/api", limiter);
 
 app.use(express.json());
