@@ -1,56 +1,53 @@
-import React, { useState } from "react";
-import { Search, X, ChevronDown, ChevronUp } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Search, X } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { usePageTitle } from "../../utils/usePageTitle";
 import { useUser } from "../../context/UserContext";
 import { useProducts } from "../../context/ProductContext";
 import { useCart } from "../../context/CartContext";
 import ProductCard from "../../components/ProductCard";
 import LoginModal from "../../modals/LoginModal";
+import { ProductCardSkeleton } from "../../components/LoadingSkeleton";
+import Pagination from "../../components/Pagination";
 
 // Shop Page
 const ShopPage = () => {
+  usePageTitle("Shop");
   const { user } = useUser();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { addToCart } = useCart();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [pendingCartProduct, setPendingCartProduct] = useState(null);
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = async (product) => {
     if (!user) {
       setShowLoginModal(true);
       setPendingCartProduct(product);
       return;
     }
-    addToCart(product, 1);
+    try {
+      await addToCart(product, 1);
+    } catch (error) {
+      console.error("Failed to add product to cart:", error);
+      // Error handling can be added here (e.g., show error toast)
+    }
   };
-  const [priceRange, setPriceRange] = useState([40, 180]);
+  const [priceRange, setPriceRange] = useState([40, 1000]);
   const [selectedRating, setSelectedRating] = useState("");
-  const [selectedGender, setSelectedGender] = useState("");
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [selectedOccasions, setSelectedOccasions] = useState([]);
-  const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedMaterials, setSelectedMaterials] = useState([]);
-  const [selectedColors, setSelectedColors] = useState([]);
-  const [selectedHeelTypes, setSelectedHeelTypes] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
-  const [selectedWidths, setSelectedWidths] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(
+    searchParams.get("search") || ""
+  );
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [brandSearch, setBrandSearch] = useState("");
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
-  const [openSections, setOpenSections] = useState({
-    priceRating: true,
-    demographics: false,
-    visualFit: false,
-  });
-
-  const { products } = useProducts();
+  const { products, loading } = useProducts();
 
   const ratings = ["5★ Stars", "4+ Stars"];
-  const genders = ["Men's", "Women's", "Unisex"];
-  const ageGroups = ["Adults", "Teens"];
   const categories = [
     "Loafers",
     "Derby",
@@ -60,47 +57,35 @@ const ShopPage = () => {
     "Pumps",
     "Ballet Flats",
   ];
-  const occasions = [
-    "Formal",
-    "Business Casual",
-    "Evening",
-    "Wedding",
-    "Cocktail",
-  ];
-  const brands = [
-    "Gucci",
-    "Prada",
-    "Louis Vuitton",
-    "Chanel",
-    "Christian Louboutin",
-    "Jimmy Choo",
-    "Salvatore Ferragamo",
-    "Versace",
-    "Dior",
-    "Valentino Garavani",
-  ];
-  const materials = [
-    "Calfskin Leather",
-    "Suede",
-    "Patent Leather",
-    "Exotic Hide",
-    "Silk",
-    "Velvet",
-  ];
-  const colors = [
-    { name: "Black", hex: "#000000" },
-    { name: "White", hex: "#ffffff" },
-    { name: "Brown", hex: "#8b4513" },
-    { name: "Beige", hex: "#d4c4b0" },
-    { name: "Tan", hex: "#d2b48c" },
-  ];
-  const heelTypes = ["Stiletto", "Block", "Kitten", "Wedge", "Flat"];
   const sizes = ["XS", "S", "M", "L", "XL"];
-  const widths = ["Standard", "Narrow", "Wide"];
 
-  const toggleSection = (section) => {
-    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
-  };
+  // Sync searchTerm with URL search param
+  useEffect(() => {
+    const urlSearch = searchParams.get("search");
+    if (urlSearch !== null && urlSearch !== searchTerm) {
+      setSearchTerm(urlSearch);
+    }
+  }, [searchParams, searchTerm]);
+
+  // Sync category from URL parameter
+  useEffect(() => {
+    const urlCategory = searchParams.get("category");
+    if (urlCategory) {
+      // Find matching category case-insensitively
+      const matchingCategory = categories.find(
+        (cat) => cat.trim().toLowerCase() === urlCategory.trim().toLowerCase()
+      );
+      if (matchingCategory) {
+        // Only update if the category from URL is not already selected
+        setSelectedCategories((prev) => {
+          if (!prev.includes(matchingCategory)) {
+            return [matchingCategory];
+          }
+          return prev;
+        });
+      }
+    }
+  }, [searchParams]);
 
   const handleCategoryToggle = (category) => {
     setSelectedCategories((prev) =>
@@ -110,514 +95,267 @@ const ShopPage = () => {
     );
   };
 
-  const handleOccasionToggle = (occasion) => {
-    setSelectedOccasions((prev) =>
-      prev.includes(occasion)
-        ? prev.filter((o) => o !== occasion)
-        : [...prev, occasion]
-    );
-  };
-
-  const handleBrandToggle = (brand) => {
-    setSelectedBrands((prev) =>
-      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
-    );
-  };
-
-  const handleMaterialToggle = (material) => {
-    setSelectedMaterials((prev) =>
-      prev.includes(material)
-        ? prev.filter((m) => m !== material)
-        : [...prev, material]
-    );
-  };
-
-  const handleColorToggle = (color) => {
-    setSelectedColors((prev) =>
-      prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
-    );
-  };
-
-  const handleHeelTypeToggle = (heelType) => {
-    setSelectedHeelTypes((prev) =>
-      prev.includes(heelType)
-        ? prev.filter((h) => h !== heelType)
-        : [...prev, heelType]
-    );
-  };
-
   const handleSizeToggle = (size) => {
     setSelectedSizes((prev) =>
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
     );
   };
 
-  const handleWidthToggle = (width) => {
-    setSelectedWidths((prev) =>
-      prev.includes(width) ? prev.filter((w) => w !== width) : [...prev, width]
-    );
-  };
-
   const clearFilters = () => {
-    setPriceRange([40, 180]);
+    setPriceRange([40, 1000]);
     setSelectedRating("");
-    setSelectedGender("");
-    setSelectedAgeGroup("");
     setSelectedCategories([]);
-    setSelectedOccasions([]);
-    setSelectedBrands([]);
-    setSelectedMaterials([]);
-    setSelectedColors([]);
-    setSelectedHeelTypes([]);
     setSelectedSizes([]);
-    setSelectedWidths([]);
     setSearchTerm("");
-    setBrandSearch("");
   };
 
   const filteredProducts = (products || []).filter((product) => {
-    const matchesSearch = product.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+    const normalizedName = (product.name || "").toLowerCase();
+    const matchesSearch = normalizedName.includes(searchTerm.toLowerCase());
+
+    // Price filter with null check
+    const productPrice = product.price ?? 0;
     const matchesPrice =
-      product.price >= priceRange[0] && product.price <= priceRange[1];
+      productPrice >= priceRange[0] && productPrice <= priceRange[1];
+
+    // Rating filter - use ratings.average if available, fallback to rating
+    const productRating = product.ratings?.average ?? product.rating ?? 0;
     const matchesRating =
       !selectedRating ||
       (selectedRating === "5★ Stars"
-        ? product.rating === 5
-        : product.rating >= 4);
-    const matchesGender = !selectedGender || product.gender === selectedGender;
-    const matchesAgeGroup =
-      !selectedAgeGroup || product.ageGroup === selectedAgeGroup;
+        ? productRating === 5
+        : productRating >= 4);
+
+    // Category filter with case-insensitive comparison and trim whitespace
+    const productCategory = product.category ? product.category.trim() : "";
     const matchesCategory =
       selectedCategories.length === 0 ||
-      selectedCategories.includes(product.category);
-    const matchesOccasion =
-      selectedOccasions.length === 0 ||
-      selectedOccasions.includes(product.occasion);
-    const matchesBrand =
-      selectedBrands.length === 0 || selectedBrands.includes(product.brand);
-    const matchesMaterial =
-      selectedMaterials.length === 0 ||
-      selectedMaterials.includes(product.material);
-    const matchesColor =
-      selectedColors.length === 0 || selectedColors.includes(product.color);
-    const matchesHeelType =
-      selectedHeelTypes.length === 0 ||
-      selectedHeelTypes.includes(product.heelType);
+      (productCategory &&
+        selectedCategories.some(
+          (selectedCat) =>
+            selectedCat.trim().toLowerCase() === productCategory.toLowerCase()
+        ));
+
+    // Size filter with null check - handle both single size and sizes array
+    const productSizes = product.sizes || (product.size ? [product.size] : []);
     const matchesSize =
-      selectedSizes.length === 0 || selectedSizes.includes(product.size);
-    const matchesWidth =
-      selectedWidths.length === 0 || selectedWidths.includes(product.width);
+      selectedSizes.length === 0 ||
+      (Array.isArray(productSizes)
+        ? productSizes.some((size) => selectedSizes.includes(size))
+        : selectedSizes.includes(product.size));
 
     return (
       matchesSearch &&
       matchesPrice &&
       matchesRating &&
-      matchesGender &&
-      matchesAgeGroup &&
       matchesCategory &&
-      matchesOccasion &&
-      matchesBrand &&
-      matchesMaterial &&
-      matchesColor &&
-      matchesHeelType &&
-      matchesSize &&
-      matchesWidth
+      matchesSize
     );
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    searchTerm,
+    priceRange,
+    selectedRating,
+    selectedCategories,
+    selectedSizes,
+  ]);
+
   const suggestions = products
     .filter((product) =>
-      product.title.toLowerCase().includes(searchTerm.toLowerCase())
+      (product.name || "").toLowerCase().includes(searchTerm.toLowerCase())
     )
     .slice(0, 5);
 
-  const filteredBrands = brands.filter((brand) =>
-    brand.toLowerCase().includes(brandSearch.toLowerCase())
-  );
+  // Add state for mobile filter drawer
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   return (
     <div className="bg-black text-white flex flex-col min-h-screen">
-      <main className="min-h-screen bg-black text-white flex gap-10 px-10 py-12">
-        {/* --- Filters Sidebar --- */}
-        <aside className="w-80 bg-[#0f0f0f] border border-yellow-700 rounded-2xl p-6 flex flex-col gap-6 h-fit sticky top-12 overflow-y-auto max-h-[calc(100vh-6rem)]">
+      <main className="min-h-screen bg-black text-white flex flex-col lg:flex-row gap-6 md:gap-10 px-4 sm:px-6 md:px-10 py-8 md:py-12">
+        {/* Mobile Filter Toggle Button */}
+        <button
+          onClick={() => setIsFilterOpen(!isFilterOpen)}
+          className="lg:hidden fixed bottom-6 right-6 z-40 bg-yellow-400 text-black px-4 py-3 rounded-full font-semibold shadow-lg hover:bg-yellow-500 transition flex items-center gap-2"
+          aria-label="Toggle filters"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+            />
+          </svg>
+          Filters
+        </button>
+
+        {/* Mobile Filter Overlay */}
+        {isFilterOpen && (
+          <div
+            className="lg:hidden fixed inset-0 bg-black bg-opacity-75 z-50"
+            onClick={() => setIsFilterOpen(false)}
+          />
+        )}
+
+        {/* Filters Sidebar - all filters shown together, no categories */}
+        <aside
+          className={`${
+            isFilterOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0"
+          } fixed lg:sticky top-0 left-0 h-full lg:h-fit w-80 bg-[#0f0f0f] border border-yellow-700 rounded-0 lg:rounded-2xl p-6 flex flex-col gap-6 z-50 lg:z-auto overflow-y-auto max-h-screen lg:max-h-[calc(100vh-6rem)] transition-transform duration-300 ease-in-out`}
+        >
           <div className="flex justify-between items-center mb-2">
             <h2 className="text-lg font-semibold text-yellow-400">Filters</h2>
             <button
               onClick={clearFilters}
-              className="text-sm text-gray-400 hover:text-yellow-400 transition flex items-center gap-1"
+              className="text-sm text-gray-400 hover:text-yellow-400 transition flex items-center gap-1 min-h-[44px] px-2"
+              aria-label="Clear all filters"
             >
-              <X size={16} />
+              <X size={16} aria-hidden="true" />
               Clear All
             </button>
           </div>
 
-          {/* --- Price & Rating --- */}
-          <div className="border-t border-yellow-700 pt-4">
-            <button
-              onClick={() => toggleSection("priceRating")}
-              className="flex justify-between items-center w-full mb-3"
-            >
-              <h3 className="font-medium text-yellow-400">I. Price & Rating</h3>
-              {openSections.priceRating ? (
-                <ChevronUp size={18} className="text-yellow-400" />
-              ) : (
-                <ChevronDown size={18} className="text-yellow-400" />
-              )}
-            </button>
-
-            {openSections.priceRating && (
-              <div className="flex flex-col gap-4">
-                {/* --- Price Range --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Price Range
-                  </h4>
-                  <div className="px-2">
-                    <input
-                      type="range"
-                      min="40"
-                      max="180"
-                      value={priceRange[0]}
-                      onChange={(e) =>
-                        setPriceRange([parseInt(e.target.value), priceRange[1]])
-                      }
-                      className="w-full accent-yellow-500"
-                    />
-                    <input
-                      type="range"
-                      min="40"
-                      max="180"
-                      value={priceRange[1]}
-                      onChange={(e) =>
-                        setPriceRange([priceRange[0], parseInt(e.target.value)])
-                      }
-                      className="w-full accent-yellow-500 mt-2"
-                    />
-                    <div className="flex justify-between text-sm text-gray-400 mt-2">
-                      <span className="text-yellow-400 font-semibold">
-                        ${priceRange[0]} Min
-                      </span>
-                      <span className="text-yellow-400 font-semibold">
-                        ${priceRange[1]} Max
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* --- Rating --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Rating
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {ratings.map((rating) => (
-                      <label
-                        key={rating}
-                        className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="rating"
-                          checked={selectedRating === rating}
-                          onChange={() => setSelectedRating(rating)}
-                          className="w-4 h-4 accent-yellow-500 cursor-pointer"
-                        />
-                        <span>{rating}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+          {/* --- Price Range (as input fields) --- */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-300 mb-2">
+              Price Range
+            </h4>
+            <div className="flex justify-between items-center px-2">
+              <label className="flex flex-col items-start text-s text-gray-400">
+                Min
+                <input
+                  type="number"
+                  min="40"
+                  max={priceRange[1]}
+                  value={priceRange[0]}
+                  onChange={(e) => {
+                    const min = Math.max(
+                      40,
+                      Math.min(Number(e.target.value), priceRange[1])
+                    );
+                    setPriceRange([min, priceRange[1]]);
+                  }}
+                  className="w-30 bg-[#0f0f0f] border border-yellow-600 rounded px-2 py-1 text-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  aria-label="Minimum price"
+                />
+              </label>
+              <span className="text-yellow-400 font-bold">-</span>
+              <label className="flex flex-col items-start text-s text-gray-400">
+                Max
+                <input
+                  type="number"
+                  min={priceRange[0]}
+                  max="1000"
+                  value={priceRange[1]}
+                  onChange={(e) => {
+                    const max = Math.min(
+                      1000,
+                      Math.max(Number(e.target.value), priceRange[0])
+                    );
+                    setPriceRange([priceRange[0], max]);
+                  }}
+                  className="w-30 bg-[#0f0f0f] border border-yellow-600 rounded px-2 py-1 text-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  aria-label="Maximum price"
+                />
+              </label>
+            </div>
           </div>
 
-          {/* --- Product Type & Demographics --- */}
-          <div className="border-t border-yellow-700 pt-4">
-            <button
-              onClick={() => toggleSection("demographics")}
-              className="flex justify-between items-center w-full mb-3"
-            >
-              <h3 className="font-medium text-yellow-400">
-                II. Product Type & Demographics
-              </h3>
-              {openSections.demographics ? (
-                <ChevronUp size={18} className="text-yellow-400" />
-              ) : (
-                <ChevronDown size={18} className="text-yellow-400" />
-              )}
-            </button>
-
-            {openSections.demographics && (
-              <div className="flex flex-col gap-4">
-                {/* --- Gender --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Gender
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {genders.map((gender) => (
-                      <label
-                        key={gender}
-                        className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="gender"
-                          checked={selectedGender === gender}
-                          onChange={() => setSelectedGender(gender)}
-                          className="w-4 h-4 accent-yellow-500 cursor-pointer"
-                        />
-                        <span>{gender}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* --- Age Group --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Age Group
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {ageGroups.map((age) => (
-                      <label
-                        key={age}
-                        className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="ageGroup"
-                          checked={selectedAgeGroup === age}
-                          onChange={() => setSelectedAgeGroup(age)}
-                          className="w-4 h-4 accent-yellow-500 cursor-pointer"
-                        />
-                        <span>{age}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* --- Category --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Category
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {categories.map((category) => (
-                      <label
-                        key={category}
-                        className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedCategories.includes(category)}
-                          onChange={() => handleCategoryToggle(category)}
-                          className="w-4 h-4 accent-yellow-500 cursor-pointer"
-                        />
-                        <span>{category}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* --- Occasion --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Occasion
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {occasions.map((occasion) => (
-                      <label
-                        key={occasion}
-                        className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedOccasions.includes(occasion)}
-                          onChange={() => handleOccasionToggle(occasion)}
-                          className="w-4 h-4 accent-yellow-500 cursor-pointer"
-                        />
-                        <span>{occasion}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* --- Brand --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Brand
-                  </h4>
+          {/* --- Rating --- */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-300 mb-2">Rating</h4>
+            <div className="flex flex-row gap-10">
+              {ratings.map((rating) => (
+                <label
+                  key={rating}
+                  className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
+                >
                   <input
-                    type="text"
-                    value={brandSearch}
-                    onChange={(e) => setBrandSearch(e.target.value)}
-                    placeholder="Search brands..."
-                    className="w-full bg-black text-white placeholder-gray-500 border border-yellow-700 rounded px-3 py-1 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-yellow-400"
+                    type="radio"
+                    name="rating"
+                    checked={selectedRating === rating}
+                    onChange={() => setSelectedRating(rating)}
+                    className="w-4 h-4 accent-yellow-500 cursor-pointer"
                   />
-                  <div className="flex flex-col gap-2 max-h-32 overflow-y-auto">
-                    {filteredBrands.map((brand) => (
-                      <label
-                        key={brand}
-                        className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedBrands.includes(brand)}
-                          onChange={() => handleBrandToggle(brand)}
-                          className="w-4 h-4 accent-yellow-500 cursor-pointer"
-                        />
-                        <span>{brand}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+                  <span>{rating}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
-          {/* --- Visual & Fit --- */}
-          <div className="border-t border-yellow-700 pt-4">
-            <button
-              onClick={() => toggleSection("visualFit")}
-              className="flex justify-between items-center w-full mb-3"
-            >
-              <h3 className="font-medium text-yellow-400">III. Visual & Fit</h3>
-              {openSections.visualFit ? (
-                <ChevronUp size={18} className="text-yellow-400" />
-              ) : (
-                <ChevronDown size={18} className="text-yellow-400" />
-              )}
-            </button>
+          {/* --- Category --- */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-300 mb-2">Category</h4>
+            <div className="flex flex-col gap-2">
+              {categories.map((category) => (
+                <label
+                  key={category}
+                  className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.includes(category)}
+                    onChange={() => handleCategoryToggle(category)}
+                    className="w-4 h-4 accent-yellow-500 cursor-pointer"
+                  />
+                  <span>{category}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
-            {openSections.visualFit && (
-              <div className="flex flex-col gap-4">
-                {/* --- Material --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Material
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {materials.map((material) => (
-                      <label
-                        key={material}
-                        className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedMaterials.includes(material)}
-                          onChange={() => handleMaterialToggle(material)}
-                          className="w-4 h-4 accent-yellow-500 cursor-pointer"
-                        />
-                        <span className="text-xs">{material}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* --- Color --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Color
-                  </h4>
-                  <div className="flex gap-2 flex-wrap">
-                    {colors.map((color) => (
-                      <button
-                        key={color.name}
-                        onClick={() => handleColorToggle(color.name)}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${
-                          selectedColors.includes(color.name)
-                            ? "border-yellow-400 ring-2 ring-yellow-400 ring-offset-2 ring-offset-[#0f0f0f]"
-                            : "border-gray-700 hover:border-yellow-400"
-                        } ${color.name === "White" ? "border-gray-400" : ""}`}
-                        style={{ backgroundColor: color.hex }}
-                        title={color.name}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* --- Heel Type --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Heel Type
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {heelTypes.map((heelType) => (
-                      <label
-                        key={heelType}
-                        className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedHeelTypes.includes(heelType)}
-                          onChange={() => handleHeelTypeToggle(heelType)}
-                          className="w-4 h-4 accent-yellow-500 cursor-pointer"
-                        />
-                        <span>{heelType}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* --- Size (US) --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Size (US)
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {sizes.map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => handleSizeToggle(size)}
-                        className={`border text-sm px-3 py-1 rounded-full transition-all ${
-                          selectedSizes.includes(size)
-                            ? "bg-yellow-500 text-black border-yellow-500"
-                            : "border-yellow-700 text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* --- Width --- */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-300 mb-2">
-                    Width
-                  </h4>
-                  <div className="flex flex-col gap-2">
-                    {widths.map((width) => (
-                      <label
-                        key={width}
-                        className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          name="width"
-                          checked={selectedWidths.includes(width)}
-                          onChange={() => handleWidthToggle(width)}
-                          className="w-4 h-4 accent-yellow-500 cursor-pointer"
-                        />
-                        <span>{width}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+          {/* --- Size --- */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-300 mb-2">
+              Size (US)
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {sizes.map((size) => (
+                <button
+                  key={size}
+                  onClick={() => handleSizeToggle(size)}
+                  className={`border text-sm px-3 py-2 rounded-full transition-all min-h-[44px] min-w-[44px] ${
+                    selectedSizes.includes(size)
+                      ? "bg-yellow-500 text-black border-yellow-500"
+                      : "border-yellow-700 text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                  }`}
+                  aria-label={`Filter by size ${size}`}
+                  aria-pressed={selectedSizes.includes(size)}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
           </div>
         </aside>
 
-        {/* --- Products Section --- */}
-        <section className="flex-1 flex flex-col gap-8 relative">
-          {/* --- Search Bar --- */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="relative w-full max-w-md">
+        {/* Products Section */}
+        <section className="flex-1 flex flex-col gap-6 md:gap-8 relative">
+          {/* Search Bar - make it responsive */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 md:mb-6">
+            <div className="relative w-full sm:max-w-md">
+              <label htmlFor="shop-search" className="sr-only">
+                Search for products
+              </label>
               <input
+                id="shop-search"
                 type="text"
                 value={searchTerm}
                 onChange={(e) => {
@@ -644,7 +382,7 @@ const ShopPage = () => {
                   ) {
                     e.preventDefault();
                     const selected = suggestions[selectedSuggestionIndex];
-                    setSearchTerm(selected.title);
+                    setSearchTerm(selected.name || "");
                     setShowSuggestions(false);
                     setSelectedSuggestionIndex(-1);
                   } else if (e.key === "Escape") {
@@ -656,30 +394,47 @@ const ShopPage = () => {
                 onFocus={() => setShowSuggestions(searchTerm.length > 0)}
                 placeholder="Search for shoes..."
                 className="w-full bg-[#0f0f0f] text-white placeholder-gray-400 border border-yellow-600 rounded-full px-5 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-all duration-300 shadow-[0_0_10px_rgba(250,204,21,0.2)]"
+                aria-expanded={showSuggestions}
+                aria-autocomplete="list"
+                aria-controls="search-suggestions"
+                aria-activedescendant={
+                  selectedSuggestionIndex >= 0
+                    ? `suggestion-${selectedSuggestionIndex}`
+                    : undefined
+                }
               />
               <Search
                 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-400"
                 size={20}
+                aria-hidden="true"
               />
 
               {/* --- Suggestions Dropdown --- */}
               {showSuggestions && suggestions.length > 0 && (
-                <ul className="absolute mt-2 w-full bg-[#0f0f0f] border border-yellow-700 rounded-xl shadow-lg max-h-48 overflow-y-auto z-20">
+                <ul
+                  id="search-suggestions"
+                  className="absolute mt-2 w-full bg-[#0f0f0f] border border-yellow-700 rounded-xl shadow-lg max-h-48 overflow-y-auto z-20"
+                  role="listbox"
+                  aria-label="Search suggestions"
+                >
                   {suggestions.map((item, index) => (
                     <li
                       key={item.id}
+                      id={`suggestion-${index}`}
                       onClick={() => {
-                        setSearchTerm(item.title);
+                        setSearchTerm(item.name || "");
                         setShowSuggestions(false);
                         setSelectedSuggestionIndex(-1);
                       }}
-                      className={`px-4 py-2 cursor-pointer text-gray-300 transition-all ${
+                      className={`px-4 py-2 cursor-pointer text-gray-300 transition-all min-h-[44px] flex items-center ${
                         index === selectedSuggestionIndex
                           ? "bg-yellow-500 text-black"
                           : "hover:bg-yellow-500 hover:text-black"
                       }`}
+                      role="option"
+                      aria-selected={index === selectedSuggestionIndex}
                     >
-                      {item.title}
+                      {item.name || ""}
                     </li>
                   ))}
                 </ul>
@@ -693,44 +448,84 @@ const ShopPage = () => {
               )}
             </div>
 
-            <div className="text-gray-400 text-sm">
+            <div
+              className="text-gray-300 text-sm w-full sm:w-auto text-left sm:text-right"
+              aria-live="polite"
+              aria-atomic="true"
+            >
               Showing{" "}
               <span className="text-yellow-400 font-semibold">
                 {filteredProducts.length}
               </span>{" "}
-              products
+              product{filteredProducts.length !== 1 ? "s" : ""}
             </div>
           </div>
 
-          {/* --- Product Grid --- */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
-                <div key={product.id} className="cursor-pointer">
-                  <ProductCard
-                    id={product.id}
-                    image={product.image}
-                    title={product.title}
-                    price={product.price}
-                    rating={product.rating}
-                    description={product.description}
-                    onAddToCart={() => handleAddToCart(product)}
-                    onClick={() => navigate(`/product/${product.id}`)}
-                  />
-                </div>
-              ))
+          {/* Product Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+            {loading ? (
+              <>
+                {[...Array(6)].map((_, i) => (
+                  <ProductCardSkeleton key={i} />
+                ))}
+              </>
+            ) : filteredProducts.length > 0 ? (
+              paginatedProducts.map((product) => {
+                const productId = product._id || product.id;
+                const productName = product.name || "Product";
+                const mainImage = Array.isArray(product.images)
+                  ? product.images[0]
+                  : product.image;
+                const displayRating =
+                  product.ratings?.average ?? product.rating;
+
+                return (
+                  <div key={productId} className="cursor-pointer">
+                    <ProductCard
+                      id={productId}
+                      image={mainImage}
+                      name={productName}
+                      price={product.price}
+                      rating={displayRating}
+                      description={product.description}
+                      onAddToCart={() => handleAddToCart(product)}
+                      onClick={() => navigate(`/product/${productId}`)}
+                    />
+                  </div>
+                );
+              })
             ) : (
-              <div className="col-span-full text-center py-12">
+              <div
+                className="col-span-full text-center py-12"
+                role="status"
+                aria-live="polite"
+              >
                 <p className="text-gray-400 text-lg mb-2">No products found</p>
+                <p className="text-gray-500 text-sm mb-4">
+                  Try adjusting your filters or search terms to find what you're
+                  looking for.
+                </p>
                 <button
                   onClick={clearFilters}
-                  className="text-yellow-400 hover:text-yellow-300 underline"
+                  className="text-yellow-400 hover:text-yellow-300 underline min-h-[44px] px-4"
+                  aria-label="Clear all filters and show all products"
                 >
                   Clear all filters
                 </button>
               </div>
             )}
           </div>
+
+          {/* Pagination */}
+          {!loading && filteredProducts.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={filteredProducts.length}
+            />
+          )}
         </section>
       </main>
 
@@ -741,10 +536,18 @@ const ShopPage = () => {
           setShowLoginModal(false);
           setPendingCartProduct(null);
         }}
-        onLoginSuccess={() => {
+        onLoginSuccess={async () => {
           setShowLoginModal(false);
           if (pendingCartProduct) {
-            addToCart(pendingCartProduct, 1);
+            try {
+              await addToCart(pendingCartProduct, 1);
+            } catch (error) {
+              console.error(
+                "Failed to add product to cart after login:",
+                error
+              );
+              // Error handling can be added here (e.g., show error toast)
+            }
             setPendingCartProduct(null);
           }
         }}

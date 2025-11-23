@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import Modal from "../components/Modal";
 
 import { useUser } from "../context/UserContext";
@@ -20,6 +20,22 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
   });
 
   const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+  const handleClose = useCallback(() => {
+    onClose();
+    setFName("");
+    setLName("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setErrors({
+      fName: "",
+      lName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+  }, [onClose]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,6 +73,12 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
     } else if (password.length < 6) {
       newErrors.password = "Password must be at least 6 characters.";
       hasError = true;
+    } else if (!/[A-Z]/.test(password)) {
+      newErrors.password = "Password must contain at least one uppercase letter.";
+      hasError = true;
+    } else if (!/[0-9]/.test(password)) {
+      newErrors.password = "Password must contain at least one number.";
+      hasError = true;
     }
 
     if (!confirmPassword.trim()) {
@@ -81,25 +103,81 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
     try {
       await register({ ...userObj, password });
       onRegister?.({ user: userObj });
+      handleClose();
       onSwitchToLogin();
     } catch (err) {
-      setErrors({
-        ...errors,
-        email:
-          err.message === "Email already exists"
-            ? "This email is already registered"
-            : "",
-      });
+      const errorMessage = err.message || "";
+      
+      // Check for validation errors from backend
+      const validationErrors = err.response?.data?.errors;
+      if (Array.isArray(validationErrors) && validationErrors.length > 0) {
+        // Map backend validation errors to form fields
+        const fieldErrors = {};
+        validationErrors.forEach((error) => {
+          const field = error.field;
+          if (field === "firstName") {
+            fieldErrors.fName = error.message;
+          } else if (field === "lastName") {
+            fieldErrors.lName = error.message;
+          } else if (field === "email") {
+            fieldErrors.email = error.message;
+          } else if (field === "password") {
+            fieldErrors.password = error.message;
+          }
+        });
+        
+        if (Object.keys(fieldErrors).length > 0) {
+          setErrors({ ...errors, ...fieldErrors });
+          return;
+        }
+      }
+      
+      // Handle other error types
+      if (errorMessage.includes("email") || errorMessage.includes("exists") || errorMessage.includes("registered")) {
+        setErrors({
+          ...errors,
+          email: "This email address is already registered. Please use a different email or try logging in instead.",
+        });
+      } else if (errorMessage.includes("network") || errorMessage.includes("connection")) {
+        setErrors({
+          ...errors,
+          email: "Unable to connect to the server. Please check your internet connection and try again.",
+        });
+      } else {
+        // Show the actual error message from backend
+        setErrors({
+          ...errors,
+          email: errorMessage || "Registration failed. Please try again or contact support if the problem persists.",
+        });
+      }
     }
   };
 
+  // Reset fields when switching to Login
+  const handleSwitchToLogin = useCallback(() => {
+    setFName("");
+    setLName("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setErrors({
+      fName: "",
+      lName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    });
+    onSwitchToLogin && onSwitchToLogin();
+  }, [onSwitchToLogin]);
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={handleClose}>
       <div className="bg-black border-2 border-yellow-400 rounded-2xl shadow-2xl relative animate-fadeIn">
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+          aria-label="Close register modal"
         >
           <svg
             className="w-6 h-6"
@@ -117,20 +195,21 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
         </button>
 
         {/* Modal Content */}
-        <div className="p-8">
-          <h2 className="text-3xl font-bold mb-6 text-center text-yellow-400">
+        <div className="p-4 sm:p-6 md:p-8">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-center text-yellow-400">
             Register
           </h2>
 
           <div className="space-y-4">
             {/* Name Fields */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* First Name */}
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-2">
+                <label htmlFor="register-fname" className="block text-sm font-medium text-yellow-400 mb-2">
                   First Name
                 </label>
                 <input
+                  id="register-fname"
                   type="text"
                   value={fName}
                   onChange={(e) => {
@@ -143,18 +222,21 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
                       : "border-gray-700 focus:border-yellow-400"
                   }`}
                   placeholder="John"
+                  aria-invalid={errors.fName ? "true" : "false"}
+                  aria-describedby={errors.fName ? "register-fname-error" : undefined}
                 />
                 {errors.fName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.fName}</p>
+                  <p id="register-fname-error" className="text-red-500 text-sm mt-1" role="alert">{errors.fName}</p>
                 )}
               </div>
 
               {/* Last Name */}
               <div>
-                <label className="block text-sm font-medium text-yellow-400 mb-2">
+                <label htmlFor="register-lname" className="block text-sm font-medium text-yellow-400 mb-2">
                   Last Name
                 </label>
                 <input
+                  id="register-lname"
                   type="text"
                   value={lName}
                   onChange={(e) => {
@@ -167,83 +249,126 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
                       : "border-gray-700 focus:border-yellow-400"
                   }`}
                   placeholder="Doe"
+                  aria-invalid={errors.lName ? "true" : "false"}
+                  aria-describedby={errors.lName ? "register-lname-error" : undefined}
                 />
                 {errors.lName && (
-                  <p className="text-red-500 text-sm mt-1">{errors.lName}</p>
+                  <p id="register-lname-error" className="text-red-500 text-sm mt-1" role="alert">{errors.lName}</p>
                 )}
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-yellow-400 mb-2">
+              <label htmlFor="register-email" className="block text-sm font-medium text-yellow-400 mb-2">
                 Email
               </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (errors.email) setErrors({ ...errors, email: "" });
-                }}
-                className={`w-full px-4 py-3 bg-gray-900 text-white border rounded-lg focus:outline-none transition ${
-                  errors.email
-                    ? "border-red-500"
-                    : "border-gray-700 focus:border-yellow-400"
-                }`}
-                placeholder="your@email.com"
-              />
+                <input
+                  id="register-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setEmail(value);
+                    if (value.trim() && !isValidEmail(value.trim())) {
+                      setErrors({ ...errors, email: "Please enter a valid email address." });
+                    } else {
+                      setErrors({ ...errors, email: "" });
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const value = e.target.value.trim();
+                    if (value && !isValidEmail(value)) {
+                      setErrors({ ...errors, email: "Please enter a valid email address." });
+                    }
+                  }}
+                  className={`w-full px-4 py-3 bg-gray-900 text-white border rounded-lg focus:outline-none transition ${
+                    errors.email
+                      ? "border-red-500"
+                      : "border-gray-700 focus:border-yellow-400"
+                  }`}
+                  placeholder="your@email.com"
+                  aria-invalid={errors.email ? "true" : "false"}
+                  aria-describedby={errors.email ? "register-email-error" : undefined}
+                />
               {errors.email && (
-                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                <p id="register-email-error" className="text-red-500 text-sm mt-1" role="alert">{errors.email}</p>
               )}
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-yellow-400 mb-2">
+              <label htmlFor="register-password" className="block text-sm font-medium text-yellow-400 mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (errors.password) setErrors({ ...errors, password: "" });
-                }}
-                className={`w-full px-4 py-3 bg-gray-900 text-white border rounded-lg focus:outline-none transition ${
-                  errors.password
-                    ? "border-red-500"
-                    : "border-gray-700 focus:border-yellow-400"
-                }`}
-                placeholder="••••••••"
-              />
+                <input
+                  id="register-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setPassword(value);
+                    if (value && value.length < 6) {
+                      setErrors({ ...errors, password: "Password must be at least 6 characters." });
+                    } else {
+                      setErrors({ ...errors, password: "" });
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const value = e.target.value;
+                    if (value && value.length < 6) {
+                      setErrors({ ...errors, password: "Password must be at least 6 characters." });
+                    }
+                  }}
+                  className={`w-full px-4 py-3 bg-gray-900 text-white border rounded-lg focus:outline-none transition ${
+                    errors.password
+                      ? "border-red-500"
+                      : "border-gray-700 focus:border-yellow-400"
+                  }`}
+                  placeholder="••••••••"
+                  aria-invalid={errors.password ? "true" : "false"}
+                  aria-describedby={errors.password ? "register-password-error" : undefined}
+                />
               {errors.password && (
-                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                <p id="register-password-error" className="text-red-500 text-sm mt-1" role="alert">{errors.password}</p>
               )}
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-medium text-yellow-400 mb-2">
+              <label htmlFor="register-confirm-password" className="block text-sm font-medium text-yellow-400 mb-2">
                 Confirm Password
               </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  if (errors.confirmPassword)
-                    setErrors({ ...errors, confirmPassword: "" });
-                }}
-                className={`w-full px-4 py-3 bg-gray-900 text-white border rounded-lg focus:outline-none transition ${
-                  errors.confirmPassword
-                    ? "border-red-500"
-                    : "border-gray-700 focus:border-yellow-400"
-                }`}
-                placeholder="••••••••"
-              />
+                <input
+                  id="register-confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setConfirmPassword(value);
+                    if (value && password && value !== password) {
+                      setErrors({ ...errors, confirmPassword: "Passwords do not match." });
+                    } else {
+                      setErrors({ ...errors, confirmPassword: "" });
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const value = e.target.value;
+                    if (value && password && value !== password) {
+                      setErrors({ ...errors, confirmPassword: "Passwords do not match." });
+                    }
+                  }}
+                  className={`w-full px-4 py-3 bg-gray-900 text-white border rounded-lg focus:outline-none transition ${
+                    errors.confirmPassword
+                      ? "border-red-500"
+                      : "border-gray-700 focus:border-yellow-400"
+                  }`}
+                  placeholder="••••••••"
+                  aria-invalid={errors.confirmPassword ? "true" : "false"}
+                  aria-describedby={errors.confirmPassword ? "register-confirm-password-error" : undefined}
+                />
               {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">
+                <p id="register-confirm-password-error" className="text-red-500 text-sm mt-1" role="alert">
                   {errors.confirmPassword}
                 </p>
               )}
@@ -251,6 +376,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
 
             {/* Create Account Button */}
             <button
+              type="submit"
               onClick={handleSubmit}
               className="w-full py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-500 transition"
             >
@@ -262,7 +388,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
           <p className="text-sm text-center mt-6 text-gray-400">
             Already have an account?{" "}
             <button
-              onClick={onSwitchToLogin}
+              onClick={handleSwitchToLogin}
               className="text-yellow-400 font-medium hover:text-yellow-300 transition"
             >
               Login

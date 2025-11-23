@@ -2,37 +2,37 @@ import React, { useState, useEffect } from "react";
 import { useUser } from "../../context/UserContext";
 import { useOrders } from "../../context/OrderContext";
 import { useNavigate } from "react-router-dom";
+import { useModal, MODAL_TYPES } from "../../context/ModalContext";
+import { usePageTitle } from "../../utils/usePageTitle";
+import { ALERT_TYPES } from "../../modals/AlertModal";
 
 // Profile Page
+const buildProfileState = (user) => ({
+  firstName: user?.firstName || "",
+  lastName: user?.lastName || "",
+  email: user?.email || "",
+  phone: user?.phone || "",
+  address: user?.address?.street || "",
+  city: user?.address?.city || "",
+  state: user?.address?.state || "",
+  zip: user?.address?.zip || "",
+  country: user?.address?.country || "",
+});
+
 const ProfilePage = () => {
+  usePageTitle("My Profile");
   const navigate = useNavigate();
   const { user, updateUser, logout } = useUser();
   const { orders, orderHistory } = useOrders();
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState("");
-  const [profile, setProfile] = useState(() => ({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    phone: user?.phone || "",
-    address: user?.address || "",
-    city: user?.city || "",
-    state: user?.state || "",
-    zip: user?.zip || "",
-  }));
+  const [validationErrors, setValidationErrors] = useState([]);
+  const { openModal } = useModal();
+  const [profile, setProfile] = useState(() => buildProfileState(user));
 
   useEffect(() => {
     if (user) {
-      setProfile({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        email: user.email || "",
-        phone: user.phone || "",
-        address: user.address || "",
-        city: user.city || "",
-        state: user.state || "",
-        zip: user.zip || "",
-      });
+      setProfile(buildProfileState(user));
     } else {
       navigate("/");
     }
@@ -53,6 +53,7 @@ const ProfilePage = () => {
 
   const handleInputChange = (e) => {
     setError("");
+    setValidationErrors([]);
     setProfile({
       ...profile,
       [e.target.name]: e.target.value,
@@ -60,31 +61,55 @@ const ProfilePage = () => {
   };
 
   const validateProfile = () => {
-    if (!profile.firstName || !profile.lastName) {
-      setError("First and last name are required");
+    const missing = [];
+    if (!profile.firstName) missing.push("first name");
+    if (!profile.lastName) missing.push("last name");
+    if (!profile.email) missing.push("email address");
+    if (!profile.phone) missing.push("phone number");
+    if (!profile.address) missing.push("street address");
+    if (!profile.city) missing.push("city");
+    if (!profile.state) missing.push("state");
+    if (!profile.zip) missing.push("ZIP code");
+    
+    if (missing.length > 0) {
+      setError(`Please fill in the following required fields: ${missing.join(", ")}`);
       return false;
     }
-    if (!profile.email || !/\S+@\S+\.\S+/.test(profile.email)) {
-      setError("Please enter a valid email address");
+    
+    if (!/\S+@\S+\.\S+/.test(profile.email)) {
+      setError("Please enter a valid email address (e.g., yourname@example.com)");
       return false;
     }
-    if (!profile.phone) {
-      setError("Phone number is required");
-      return false;
-    }
-    if (!profile.address || !profile.city || !profile.state || !profile.zip) {
-      setError("Please fill in all address fields");
-      return false;
-    }
+    
     return true;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setValidationErrors([]);
     if (!validateProfile()) return;
-
-    updateUser(profile);
-    setIsEditing(false);
-    setError("");
+    try {
+      await updateUser({
+        firstName: profile.firstName.trim(),
+        lastName: profile.lastName.trim(),
+        email: profile.email.trim(),
+        phone: profile.phone.trim(),
+        address: {
+          street: profile.address.trim(),
+          city: profile.city.trim(),
+          state: profile.state.trim(),
+          zip: profile.zip.trim(),
+          country: (profile.country || "USA").trim(),
+        },
+      });
+      setIsEditing(false);
+      setError("");
+      setValidationErrors([]);
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "Unable to save profile";
+      setError(errorMessage);
+      setValidationErrors(err.response?.data?.errors || []);
+    }
   };
 
   return (
@@ -99,8 +124,10 @@ const ProfilePage = () => {
           <div className="lg:col-span-1">
             <div className="bg-gray-900 rounded-2xl p-6 text-center">
               <div className="w-32 h-32 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl font-bold text-black">
-                {profile.firstName[0]}
-                {profile.lastName[0]}
+                {(
+                  (profile.firstName?.[0] || "") + (profile.lastName?.[0] || "") ||
+                  "N"
+                ).toUpperCase()}
               </div>
               <h2 className="text-xl font-bold mb-1">
                 {profile.firstName} {profile.lastName}
@@ -116,8 +143,13 @@ const ProfilePage = () => {
                 </button>
                 <button
                   onClick={() => {
-                    logout();
-                    navigate("/");
+                    openModal(MODAL_TYPES.ALERT_MODAL, {
+                      ...ALERT_TYPES.LOGOUT_CONFIRM,
+                      onConfirm: () => {
+                        logout();
+                        navigate("/");
+                      },
+                    });
                   }}
                   className="w-full bg-gray-800 text-white py-3 rounded-full font-semibold hover:bg-gray-700 transition"
                 >
@@ -153,7 +185,18 @@ const ProfilePage = () => {
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Personal Information</h2>
                 {error && (
-                  <div className="text-red-500 text-sm mb-4">{error}</div>
+                  <div className="text-red-500 text-sm mb-4" role="alert" aria-live="polite">
+                    <p>{error}</p>
+                    {validationErrors.length > 0 && (
+                      <ul className="list-disc list-inside mt-2 space-y-1 text-red-400">
+                        {validationErrors.map((validationError) => (
+                          <li key={`${validationError.field}-${validationError.message}`}>
+                            {validationError.message}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 )}
                 {!isEditing ? (
                   <button
@@ -196,32 +239,36 @@ const ProfilePage = () => {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm mb-2 text-gray-400">
+                    <label htmlFor="profile-firstname" className="block text-sm mb-2 text-gray-400">
                       First Name
                     </label>
                     {isEditing ? (
                       <input
+                        id="profile-firstname"
                         type="text"
                         name="firstName"
                         value={profile.firstName}
                         onChange={handleInputChange}
                         className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 focus:border-yellow-400 focus:outline-none"
+                        aria-required="true"
                       />
                     ) : (
                       <p className="text-lg">{profile.firstName}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm mb-2 text-gray-400">
+                    <label htmlFor="profile-lastname" className="block text-sm mb-2 text-gray-400">
                       Last Name
                     </label>
                     {isEditing ? (
                       <input
+                        id="profile-lastname"
                         type="text"
                         name="lastName"
                         value={profile.lastName}
                         onChange={handleInputChange}
                         className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 focus:border-yellow-400 focus:outline-none"
+                        aria-required="true"
                       />
                     ) : (
                       <p className="text-lg">{profile.lastName}</p>
@@ -230,16 +277,18 @@ const ProfilePage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2 text-gray-400">
+                  <label htmlFor="profile-email" className="block text-sm mb-2 text-gray-400">
                     Email
                   </label>
                   {isEditing ? (
                     <input
+                      id="profile-email"
                       type="email"
                       name="email"
                       value={profile.email}
                       onChange={handleInputChange}
                       className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 focus:border-yellow-400 focus:outline-none"
+                      aria-required="true"
                     />
                   ) : (
                     <p className="text-lg">{profile.email}</p>
@@ -247,16 +296,18 @@ const ProfilePage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2 text-gray-400">
+                  <label htmlFor="profile-phone" className="block text-sm mb-2 text-gray-400">
                     Phone
                   </label>
                   {isEditing ? (
                     <input
+                      id="profile-phone"
                       type="tel"
                       name="phone"
                       value={profile.phone}
                       onChange={handleInputChange}
                       className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 focus:border-yellow-400 focus:outline-none"
+                      aria-required="true"
                     />
                   ) : (
                     <p className="text-lg">{profile.phone}</p>
@@ -268,16 +319,18 @@ const ProfilePage = () => {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm mb-2 text-gray-400">
+                      <label htmlFor="profile-address" className="block text-sm mb-2 text-gray-400">
                         Street Address
                       </label>
                       {isEditing ? (
                         <input
+                          id="profile-address"
                           type="text"
                           name="address"
                           value={profile.address}
                           onChange={handleInputChange}
                           className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 focus:border-yellow-400 focus:outline-none"
+                          aria-required="true"
                         />
                       ) : (
                         <p className="text-lg">{profile.address}</p>
@@ -286,53 +339,76 @@ const ProfilePage = () => {
 
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm mb-2 text-gray-400">
+                        <label htmlFor="profile-city" className="block text-sm mb-2 text-gray-400">
                           City
                         </label>
                         {isEditing ? (
                           <input
+                            id="profile-city"
                             type="text"
                             name="city"
                             value={profile.city}
                             onChange={handleInputChange}
                             className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 focus:border-yellow-400 focus:outline-none"
+                            aria-required="true"
                           />
                         ) : (
                           <p className="text-lg">{profile.city}</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm mb-2 text-gray-400">
+                        <label htmlFor="profile-state" className="block text-sm mb-2 text-gray-400">
                           State
                         </label>
                         {isEditing ? (
                           <input
+                            id="profile-state"
                             type="text"
                             name="state"
                             value={profile.state}
                             onChange={handleInputChange}
                             className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 focus:border-yellow-400 focus:outline-none"
+                            aria-required="true"
                           />
                         ) : (
                           <p className="text-lg">{profile.state}</p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm mb-2 text-gray-400">
+                        <label htmlFor="profile-zip" className="block text-sm mb-2 text-gray-400">
                           ZIP
                         </label>
                         {isEditing ? (
                           <input
+                            id="profile-zip"
                             type="text"
                             name="zip"
                             value={profile.zip}
                             onChange={handleInputChange}
                             className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 focus:border-yellow-400 focus:outline-none"
+                            aria-required="true"
                           />
                         ) : (
                           <p className="text-lg">{profile.zip}</p>
                         )}
                       </div>
+                  <div>
+                    <label htmlFor="profile-country" className="block text-sm mb-2 text-gray-400">
+                      Country
+                    </label>
+                    {isEditing ? (
+                      <input
+                        id="profile-country"
+                        type="text"
+                        name="country"
+                        value={profile.country}
+                        onChange={handleInputChange}
+                        className="w-full bg-black border border-gray-700 rounded-lg px-4 py-3 focus:border-yellow-400 focus:outline-none"
+                      />
+                    ) : (
+                      <p className="text-lg">{profile.country || "—"}</p>
+                    )}
+                  </div>
                     </div>
                   </div>
                 </div>

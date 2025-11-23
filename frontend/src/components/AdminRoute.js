@@ -7,7 +7,7 @@ const AdminRoute = ({ children }) => {
   const { user } = useUser();
 
   if (!user || !user.isAdmin) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;

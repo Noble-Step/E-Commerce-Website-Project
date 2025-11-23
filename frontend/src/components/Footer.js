@@ -13,8 +13,8 @@ export default function Footer() {
   };
   return (
     <footer className="bg-black text-white border-t border-yellow-600/20">
-      <div className="max-w-7xl mx-auto px-6 pb-10 border-t border-yellow-600/20">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-10 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-6 md:pb-10 border-t border-yellow-600/20">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 sm:gap-8 md:gap-10 py-6 md:py-10">
           {/* Logo and Description */}
           <div>
             <h2 className="text-yellow-500 font-semibold text-xl mb-3">
@@ -88,7 +88,8 @@ export default function Footer() {
               <li>
                 <button
                   onClick={() => (window.location.href = "/shop")}
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="View our products"
                 >
                   Our Products
                 </button>
@@ -116,7 +117,8 @@ export default function Footer() {
                       "Free shipping on orders over $200. Standard shipping fee: $15"
                     )
                   }
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="View delivery details"
                 >
                   Delivery Details
                 </button>
@@ -129,7 +131,8 @@ export default function Footer() {
                       "All products are subject to availability. Returns accepted within 30 days."
                     )
                   }
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="View terms and conditions"
                 >
                   Terms & Conditions
                 </button>
@@ -142,7 +145,8 @@ export default function Footer() {
                       "We respect your privacy and protect your personal information."
                     )
                   }
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="View privacy policy"
                 >
                   Privacy Policy
                 </button>
@@ -162,7 +166,8 @@ export default function Footer() {
                       "You can create an account to save your preferences and order history."
                     )
                   }
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="View account FAQ"
                 >
                   Account
                 </button>
@@ -175,7 +180,8 @@ export default function Footer() {
                       "We offer free shipping on orders over $200. Standard delivery takes 3-5 business days."
                     )
                   }
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="View delivery FAQ"
                 >
                   Manage Delivery
                 </button>
@@ -183,7 +189,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/orders"
-                  className="hover:text-yellow-500 transition-colors"
+                  className="hover:text-yellow-500 transition-colors min-h-[44px] flex items-center"
                 >
                   Orders
                 </a>
@@ -196,7 +202,8 @@ export default function Footer() {
                       "We accept Visa, PayPal, and Google Pay. All payments are secure and encrypted."
                     )
                   }
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="View payment FAQ"
                 >
                   Payments
                 </button>
@@ -218,7 +225,8 @@ export default function Footer() {
                       "Coming soon! Subscribe to our newsletter for updates."
                     )
                   }
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="View free eBooks information"
                 >
                   Free eBooks
                 </button>
@@ -231,7 +239,8 @@ export default function Footer() {
                       "New products and features are added regularly. Check back often!"
                     )
                   }
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="View developments information"
                 >
                   Developments
                 </button>
@@ -246,7 +255,8 @@ export default function Footer() {
                       behavior: "smooth",
                     })
                   }
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="Scroll to newsletter section"
                 >
                   Join Our Newsletter
                 </button>
@@ -259,7 +269,8 @@ export default function Footer() {
                       "Subscribe to our newsletter for exclusive deals and early access to sales!"
                     )
                   }
-                  className="hover:text-yellow-500 transition-colors text-left"
+                  className="hover:text-yellow-500 transition-colors text-left min-h-[44px]"
+                  aria-label="View exclusive deals information"
                 >
                   Exclusive Deals
                 </button>
@@ -269,16 +280,16 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="flex flex-col md:flex-row justify-between items-center border-t border-yellow-600/20 pt-6 text-gray-400 text-sm">
-          <p>Noble Step © 2025, All rights reserved</p>
-          <div className="flex gap-3 mt-3 md:mt-0">
-            <button className="bg-white text-black font-semibold py-1 px-3 rounded flex items-center gap-1 hover:bg-yellow-500 hover:text-black transition-colors">
-              <CreditCard size={16} /> VISA
+        <div className="flex flex-col md:flex-row justify-between items-center border-t border-yellow-600/20 pt-4 md:pt-6 text-gray-400 text-xs sm:text-sm gap-4 md:gap-0">
+          <p className="text-center md:text-left">Noble Step © 2025, All rights reserved</p>
+          <div className="flex flex-wrap gap-2 sm:gap-3 justify-center md:justify-end">
+            <button className="bg-white text-black font-semibold py-2 px-4 rounded flex items-center gap-1 hover:bg-yellow-500 hover:text-black transition-colors min-h-[44px]" aria-label="Visa payment method">
+              <CreditCard size={16} aria-hidden="true" /> VISA
             </button>
-            <button className="bg-white text-black font-semibold py-1 px-3 rounded hover:bg-yellow-500 hover:text-black transition-colors">
+            <button className="bg-white text-black font-semibold py-2 px-4 rounded hover:bg-yellow-500 hover:text-black transition-colors min-h-[44px]" aria-label="PayPal payment method">
               PayPal
             </button>
-            <button className="bg-white text-black font-semibold py-1 px-3 rounded hover:bg-yellow-500 hover:text-black transition-colors">
+            <button className="bg-white text-black font-semibold py-2 px-4 rounded hover:bg-yellow-500 hover:text-black transition-colors min-h-[44px]" aria-label="Google Pay payment method">
               G Pay
             </button>
           </div>

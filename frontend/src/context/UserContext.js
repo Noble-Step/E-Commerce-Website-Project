@@ -1,36 +1,76 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import API from "../services/api";
 
-const UserContext = createContext();
+const storage = {
+  get(key, fallback = null) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (err) {
+      return fallback;
+    }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (err) {
+      // ignore
+    }
+  },
+  remove(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (err) {
+      // ignore
+    }
+  },
+};
+
+const normalizeRegisteredUser = (record = {}) => {
+  const id = record.id || record._id || `reg-${Date.now()}`;
+  const first = record.firstName || record.first_name || "";
+  const last = record.lastName || record.last_name || "";
+  const derivedName = record.name || `${first} ${last}`.trim() || "User";
+
+  return {
+    id: String(id),
+    name: derivedName,
+    email: record.email || "unknown@nobles.step",
+    isAdmin: Boolean(record.isAdmin),
+    createdAt: record.createdAt || new Date().toISOString(),
+  };
+};
+
+const UserContext = createContext(null);
 
 // User Provider
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("user");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [user, setUser] = useState(() => storage.get("user", null));
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const [registeredUsers, setRegisteredUsers] = useState(() => {
-    try {
-      const saved = localStorage.getItem("registeredUsers");
-      return saved ? JSON.parse(saved) : [];
-    } catch (err) {
-      return [];
+    const stored = storage.get("registeredUsers", null);
+    if (Array.isArray(stored) && stored.length) {
+      return stored.map((entry) => normalizeRegisteredUser(entry));
     }
+    return [];
   });
+  const [registryHydrated, setRegistryHydrated] = useState(false);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("registeredUsers", JSON.stringify(registeredUsers));
-    } catch (err) {}
-  }, [registeredUsers]);
+  const currentUserId = user?._id || user?.id;
+
   useEffect(() => {
     if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
+      storage.set("user", user);
     } else {
-      localStorage.removeItem("user");
+      storage.remove("user");
     }
   }, [user]);
 
@@ -42,30 +82,47 @@ export const UserProvider = ({ children }) => {
     }
   }, [token]);
 
-  const login = async (payload) => {
-    if (payload && payload.email && payload.password) {
-      try {
-        setLoading(true);
-        setError(null);
+  useEffect(() => {
+    storage.set("registeredUsers", registeredUsers);
+    if (!registryHydrated) {
+      setRegistryHydrated(true);
+    }
+  }, [registeredUsers, registryHydrated]);
 
-        const user = registeredUsers.find((u) => u.email === payload.email);
-        if (!user || user.password !== payload.password) {
-          throw new Error("Invalid email or password");
-        }
-
-        const { password, ...safeUser } = user;
-
-        const newToken = btoa(`${user.id}:${Date.now()}`);
-
-        setUser(safeUser);
-        setToken(newToken);
-        return safeUser;
-      } catch (err) {
-        setError(err.message || "Login error");
-        throw err;
-      } finally {
-        setLoading(false);
+  const upsertRegisteredUser = useCallback((record) => {
+    if (!record) return;
+    const normalized = normalizeRegisteredUser(record);
+    setRegisteredUsers((prev) => {
+      const exists = prev.some(
+        (entry) => String(entry.id) === String(normalized.id)
+      );
+      if (exists) {
+        return prev.map((entry) =>
+          String(entry.id) === String(normalized.id) ? normalized : entry
+        );
       }
+      return [normalized, ...prev];
+    });
+  }, []);
+
+  const login = async ({ email, password }) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await API.post(`/users/login`, { email, password });
+      const data = response.data;
+      const returnedUser = data.user || data;
+      setUser(returnedUser);
+      if (returnedUser.token) setToken(returnedUser.token);
+      upsertRegisteredUser(returnedUser);
+      return returnedUser;
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "Login failed";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,22 +130,27 @@ export const UserProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-
-      if (registeredUsers.some((u) => u.email === userData.email)) {
-        throw new Error("Email already exists");
-      }
-
-      const newUser = {
-        ...userData,
-        id: Date.now(),
-        createdAt: new Date().toISOString(),
-        isAdmin: userData.email === "admin@noblestep.com",
-      };
-
-      setRegisteredUsers((prev) => [...prev, newUser]);
-      return newUser;
+      const response = await API.post(`/users/register`, userData);
+      const data = response.data;
+      const returnedUser = data.user || data;
+      setUser(returnedUser);
+      if (returnedUser.token) setToken(returnedUser.token);
+      upsertRegisteredUser(returnedUser);
+      return returnedUser;
     } catch (err) {
-      setError(err.message || "Registration error");
+      // Extract validation errors if available
+      const validationErrors = err.response?.data?.errors;
+      let errorMessage = err.response?.data?.message || err.message || "Registration failed";
+      
+      // If there are validation errors, format them into a readable message
+      if (Array.isArray(validationErrors) && validationErrors.length > 0) {
+        const errorMessages = validationErrors.map(e => e.message || `${e.field}: ${e.message}`).join(". ");
+        errorMessage = errorMessages;
+      }
+      
+      setError(errorMessage);
+      // Attach the error message to the error object so RegisterModal can access it
+      err.message = errorMessage;
       throw err;
     } finally {
       setLoading(false);
@@ -98,57 +160,90 @@ export const UserProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    storage.remove("user");
+    storage.remove("token");
   };
 
-  const updateUser = (updates) => {
-    setUser((prev) => ({ ...prev, ...updates }));
-  };
-
-  const setRegisteredUsersSafe = (updater) => {
-    setRegisteredUsers((prev) => {
-      const next = typeof updater === "function" ? updater(prev) : updater;
-      try {
-        localStorage.setItem("registeredUsers", JSON.stringify(next));
-      } catch (err) {}
-      return next;
-    });
+  const updateUser = async (updates) => {
+    try {
+      setLoading(true);
+      const response = await API.put(`/users/profile`, updates);
+      const data = response.data;
+      const returnedUser = data.user || data;
+      setUser(returnedUser);
+      if (returnedUser.token) setToken(returnedUser.token);
+      upsertRegisteredUser(returnedUser);
+      return returnedUser;
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "Update failed";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const updateRegisteredUser = (userId, updates) => {
-    setRegisteredUsersSafe((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, ...updates } : u))
-    );
-
-    if (user && user.id === userId) {
-      setUser((prev) => ({ ...prev, ...updates }));
+    if (String(userId) === String(currentUserId)) {
+      return false;
     }
+    let updated = false;
+    setRegisteredUsers((prev) =>
+      prev.map((entry) => {
+        if (String(entry.id) !== String(userId)) {
+          return entry;
+        }
+        updated = true;
+        const nextName = updates.name || entry.name;
+        return {
+          ...entry,
+          name: nextName,
+          email: updates.email || entry.email,
+          isAdmin:
+            typeof updates.isAdmin === "boolean"
+              ? updates.isAdmin
+              : entry.isAdmin,
+        };
+      })
+    );
+    return updated;
   };
 
   const toggleAdminForUser = (userId) => {
-    if (user && user.id === userId) return false;
-    let changed = false;
-    setRegisteredUsersSafe((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          changed = true;
-          return { ...u, isAdmin: !u.isAdmin };
-        }
-        return u;
+    if (String(userId) === String(currentUserId)) {
+      return false;
+    }
+    let toggledUser = null;
+    setRegisteredUsers((prev) =>
+      prev.map((entry) => {
+        if (String(entry.id) !== String(userId)) return entry;
+        toggledUser = { ...entry, isAdmin: !entry.isAdmin };
+        return toggledUser;
       })
     );
-    return changed;
+    return Boolean(toggledUser);
   };
 
   const deleteRegisteredUser = (userId) => {
-    if (user && user.id === userId) return false;
-    setRegisteredUsersSafe((prev) => prev.filter((u) => u.id !== userId));
-    if (user && user.id === userId) {
-      logout();
+    if (String(userId) === String(currentUserId)) {
+      return false;
     }
-    return true;
+    let deleted = false;
+    setRegisteredUsers((prev) => {
+      const next = prev.filter((entry) => {
+        const shouldKeep = String(entry.id) !== String(userId);
+        if (!shouldKeep) deleted = true;
+        return shouldKeep;
+      });
+      return next;
+    });
+    return deleted;
   };
+
+  const seedRegisteredUsers = useCallback(() => {
+    setRegisteredUsers((prev) => (prev.length ? prev : []));
+  }, []);
 
   return (
     <UserContext.Provider
@@ -157,14 +252,16 @@ export const UserProvider = ({ children }) => {
         token,
         loading,
         error,
+        registeredUsers,
+        registryHydrated,
         login,
         register,
         logout,
         updateUser,
-        registeredUsers,
         updateRegisteredUser,
         toggleAdminForUser,
         deleteRegisteredUser,
+        seedRegisteredUsers,
         isAuthenticated: !!user && !!token,
       }}
     >

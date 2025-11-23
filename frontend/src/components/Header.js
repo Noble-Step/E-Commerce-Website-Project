@@ -1,293 +1,279 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ShoppingCart, User, LogIn, UserPlus } from "lucide-react";
-import LoginModal from "../modals/LoginModal";
-import RegisterModal from "../modals/RegisterModal";
-import AlertModal, { ALERT_TYPES } from "../modals/AlertModal";
+import { ALERT_TYPES } from "../modals/AlertModal";
 import { useUser } from "../context/UserContext";
 import { useCart } from "../context/CartContext";
+import { useModal, MODAL_TYPES } from "../context/ModalContext";
+import Button from "./Button";
+import NavLink from "./NavLink";
+import Breadcrumbs from "./Breadcrumbs";
+import logo from "../assets/logo.jpg";
 
-// Header
 const Header = () => {
-  const { user, logout, login } = useUser();
+  const { user, logout } = useUser();
   const { cartItems } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [showRegister, setShowRegister] = useState(false);
-  const [showAlert, setShowAlert] = useState(false);
-  const [alertConfig, setAlertConfig] = useState(null);
+  const { openModal } = useModal();
   const navigate = useNavigate();
 
   const handleCartClick = () => {
     if (!user) {
-      setShowLogin(true);
+      openModal(MODAL_TYPES.LOGIN_MODAL);
       return;
     }
     navigate("/cart");
   };
 
-  useEffect(() => {
-    if (showLogin || showRegister) {
-      setIsMenuOpen(false);
-    }
-  }, [showLogin, showRegister]);
-
   return (
-    <div className="bg-black">
+    <div className="bg-black sticky top-0 z-50">
       <header className="bg-black border-b border-yellow-500 relative z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo and Website Name */}
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center">
-                <span className="text-black font-bold text-xl">N</span>
-              </div>
-              <span className="text-xl font-semibold text-yellow-400">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between py-3 sm:py-4 gap-2 sm:gap-4">
+            {/* Logo and Brand - Always visible */}
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
+                <img src={logo} alt="Noble Step" className="w-full h-full object-contain" />
+              </div> 
+              <span className="text-base sm:text-xl font-semibold text-yellow-400 whitespace-nowrap">
                 Noble Step
               </span>
             </Link>
 
-            {/* Right Side Actions */}
-            <div className="flex items-center gap-2">
+            {/* Desktop Navigation Bar (lg and above) */}
+            <nav className="hidden lg:flex items-center gap-2 xl:gap-4" aria-label="Main navigation">
+              <NavLink to="/" className="whitespace-nowrap text-sm xl:text-base">
+                Home
+              </NavLink>
+              <NavLink to="/shop" className="whitespace-nowrap text-sm xl:text-base">
+                Products
+              </NavLink>
+              <NavLink to="/orders" className="whitespace-nowrap text-sm xl:text-base">
+                Orders
+              </NavLink>
+              <NavLink to="/about" className="whitespace-nowrap text-sm xl:text-base">
+                About
+              </NavLink>
+              <NavLink to="/contact" className="whitespace-nowrap text-sm xl:text-base">
+                Contact
+              </NavLink>
+              {user?.isAdmin && (
+                <NavLink to="/admin" variant="admin" className="whitespace-nowrap text-sm xl:text-base">
+                  Admin Dashboard
+                </NavLink>
+              )}
+            </nav>
+
+            {/* Right Side Actions - Compact on mobile */}
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {/* Login/Register or Profile Button */}
               {user ? (
                 <button
                   onClick={() => navigate("/profile")}
-                  className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                  className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-800 transition-colors"
                   aria-label="Profile"
+                  title="Profile"
                 >
-                  <User className="w-6 h-6 text-yellow-400" />
+                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" />
                 </button>
               ) : (
                 <>
-                  <button
-                    onClick={() => setShowLogin(true)}
-                    className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm text-yellow-400 hover:bg-gray-800 rounded-lg transition-colors border border-yellow-500/30"
+                  {/* Show Login icon on small screens, text on larger */}
+                  <Button
+                    variant="ghost"
+                    size="md"
+                    onClick={() => openModal(MODAL_TYPES.LOGIN_MODAL)}
+                    className="hidden md:flex items-center justify-center gap-2 px-3 py-1.5 text-sm"
+                    aria-label="Open login modal"
                   >
-                    <LogIn className="w-4 h-4" />
-                    Login
-                  </button>
-
+                    <LogIn className="w-4 h-4" aria-hidden="true" />
+                    <span className="hidden lg:inline">Login</span>
+                  </Button>
                   <button
-                    onClick={() => setShowRegister(true)}
-                    className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-medium hover:from-yellow-500 hover:to-yellow-700 rounded-lg transition-all border border-yellow-500/30"
+                    onClick={() => openModal(MODAL_TYPES.LOGIN_MODAL)}
+                    className="md:hidden p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+                    aria-label="Login"
                   >
-                    Register
+                    <LogIn className="w-5 h-5 text-yellow-400" />
                   </button>
+                  
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={() => openModal(MODAL_TYPES.REGISTER_MODAL)}
+                    className="hidden sm:flex items-center justify-center gap-2 px-3 py-1.5 text-sm whitespace-nowrap"
+                    aria-label="Open registration modal"
+                  >
+                    <span className="hidden lg:inline">Register</span>
+                    <span className="lg:hidden">Sign Up</span>
+                  </Button>
                 </>
               )}
 
-              <LoginModal
-                isOpen={showLogin}
-                onClose={() => setShowLogin(false)}
-                onSwitchToRegister={() => {
-                  setShowLogin(false);
-                  setShowRegister(true);
-                }}
-                onLogin={(data) => {
-                  login(data.user);
-                  setShowLogin(false);
-                }}
-              />
-
-              <RegisterModal
-                isOpen={showRegister}
-                onClose={() => setShowRegister(false)}
-                onSwitchToLogin={() => {
-                  setShowRegister(false);
-                  setShowLogin(true);
-                }}
-                onRegister={(data) => {
-                  login(data.user);
-                  setShowRegister(false);
-                }}
-              />
-
-              {/* Cart Button - Now a button, not a Link */}
+              {/* Cart Button */}
               <button
                 onClick={handleCartClick}
-                className="p-2 rounded-lg hover:bg-gray-800 transition-colors relative"
-                aria-label="Cart"
+                className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-800 transition-colors relative"
+                aria-label={`Shopping cart${
+                  cartItems.length > 0
+                    ? `, ${cartItems.length} item${cartItems.length !== 1 ? "s" : ""}`
+                    : ", empty"
+                }`}
               >
-                <ShoppingCart className="w-6 h-6 text-yellow-400" />
+                <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" aria-hidden="true" />
                 {cartItems.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-xs font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-[10px] sm:text-xs font-bold rounded-full flex items-center justify-center">
                     {cartItems.length > 99 ? "99+" : cartItems.length}
                   </span>
                 )}
               </button>
 
-              {/* Burger Menu Button */}
+              {/* Burger Menu Button (Mobile and Tablet) */}
               <button
-                onClick={() =>
-                  !showLogin && !showRegister && setIsMenuOpen(!isMenuOpen)
-                }
-                className={`p-2 rounded-lg transition-colors ${
-                  showLogin || showRegister
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-800"
-                }`}
-                aria-label="Toggle menu"
-                disabled={showLogin || showRegister}
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="lg:hidden p-1.5 sm:p-2 rounded-lg transition-colors hover:bg-gray-800"
+                aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+                aria-expanded={isMenuOpen}
+                aria-controls="mobile-menu"
               >
                 {isMenuOpen ? (
-                  <X className="w-6 h-6 text-yellow-400" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" aria-hidden="true" />
                 ) : (
-                  <Menu className="w-6 h-6 text-yellow-400" />
+                  <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" aria-hidden="true" />
                 )}
               </button>
             </div>
           </div>
         </div>
+        <Breadcrumbs />
       </header>
 
-      {/* Alert Modal (used for logout confirmation, etc.) */}
-      {alertConfig && (
-        <AlertModal
-          isOpen={showAlert}
-          onClose={() => setShowAlert(false)}
-          {...alertConfig}
-          onConfirm={() => {
-            logout();
-            setShowAlert(false);
-            navigate("/");
-          }}
-        />
-      )}
-
       {/* Overlay */}
-      {isMenuOpen && !showLogin && !showRegister && (
+      {isMenuOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-75 z-40 transition-opacity"
+          className="fixed inset-0 bg-black bg-opacity-75 z-40 transition-opacity lg:hidden"
           onClick={() => setIsMenuOpen(false)}
         />
       )}
 
       {/* Sidebar Menu */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 bg-black ${
-          showLogin || showRegister ? "z-40" : "z-50"
-        } transform transition-transform duration-300 ease-in-out border-l border-yellow-500/20 ${
-          isMenuOpen && !showLogin && !showRegister
-            ? "translate-x-0"
-            : "translate-x-full"
+        id="mobile-menu"
+        className={`fixed top-0 right-0 h-full w-[85vw] sm:w-80 bg-black z-50 transform transition-transform duration-300 ease-in-out border-l border-yellow-500/20 lg:hidden ${
+          isMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
+        aria-hidden={!isMenuOpen}
       >
-        <div className="flex items-center justify-between p-4 border-b border-yellow-500/20">
-          <h2 className="text-xl font-semibold text-yellow-400">Menu</h2>
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-yellow-500/20">
+          <h2 className="text-lg sm:text-xl font-semibold text-yellow-400">Menu</h2>
           <button
             onClick={() => setIsMenuOpen(false)}
-            className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
+            className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-800 transition-colors"
             aria-label="Close menu"
           >
-            <X className="w-6 h-6 text-yellow-400" />
+            <X className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" />
           </button>
         </div>
 
-        <nav className="p-4 space-y-2">
+        <nav className="p-3 sm:p-4 space-y-1 sm:space-y-2 overflow-y-auto" style={{ maxHeight: "calc(100vh - 200px)" }} aria-label="Main navigation">
           {user?.isAdmin && (
-            <Link
+            <NavLink
               to="/admin"
               onClick={() => setIsMenuOpen(false)}
-              className="flex items-center px-4 py-3 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors font-medium"
+              variant="admin"
             >
               Admin Dashboard
-            </Link>
+            </NavLink>
           )}
-          <Link
-            to="/"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center px-4 py-3 text-gray-300 hover:text-yellow-400 hover:bg-gray-800 rounded-lg transition-colors"
-          >
+          <NavLink to="/" onClick={() => setIsMenuOpen(false)}>
             Home
-          </Link>
-          <Link
-            to="/profile"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center px-4 py-3 text-gray-300 hover:text-yellow-400 hover:bg-gray-800 rounded-lg transition-colors"
-          >
+          </NavLink>
+          <NavLink to="/profile" onClick={() => setIsMenuOpen(false)}>
             Profile
-          </Link>
-          <Link
-            to="/shop"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center px-4 py-3 text-gray-300 hover:text-yellow-400 hover:bg-gray-800 rounded-lg transition-colors"
-          >
+          </NavLink>
+          <NavLink to="/shop" onClick={() => setIsMenuOpen(false)}>
             Products
-          </Link>
-          <Link
-            to="/orders"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center px-4 py-3 text-gray-300 hover:text-yellow-400 hover:bg-gray-800 rounded-lg transition-colors"
-          >
+          </NavLink>
+          <NavLink to="/orders" onClick={() => setIsMenuOpen(false)}>
             Orders
-          </Link>
-          <Link
-            to="/about"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center px-4 py-3 text-gray-300 hover:text-yellow-400 hover:bg-gray-800 rounded-lg transition-colors"
-          >
+          </NavLink>
+          <NavLink to="/about" onClick={() => setIsMenuOpen(false)}>
             About
-          </Link>
-          <Link
-            to="/contact"
-            onClick={() => setIsMenuOpen(false)}
-            className="flex items-center px-4 py-3 text-gray-300 hover:text-yellow-400 hover:bg-gray-800 rounded-lg transition-colors"
-          >
+          </NavLink>
+          <NavLink to="/contact" onClick={() => setIsMenuOpen(false)}>
             Contact
-          </Link>
+          </NavLink>
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-yellow-500/20">
+        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 border-t border-yellow-500/20 bg-black">
           {user ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-3 px-4 py-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-black" />
+              <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-2">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center flex-shrink-0">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-yellow-400">
+                    <p className="font-medium text-yellow-400 text-sm sm:text-base truncate">
                       {user.name || "User"}
                     </p>
                     {user.isAdmin && (
-                      <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/20 text-yellow-400 rounded-full">
+                      <span className="px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-medium bg-yellow-500/20 text-yellow-400 rounded-full whitespace-nowrap">
                         Admin
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-xs sm:text-sm text-gray-400 truncate">
                     {user.email || "user@example.com"}
                   </p>
                 </div>
               </div>
-              <button
+              <Button
+                variant="danger"
+                size="full"
                 onClick={() => {
-                  setAlertConfig(ALERT_TYPES.LOGOUT_CONFIRM);
-                  setShowAlert(true);
+                  openModal(MODAL_TYPES.ALERT_MODAL, {
+                    ...ALERT_TYPES.LOGOUT_CONFIRM,
+                    onConfirm: () => {
+                      logout();
+                      navigate("/");
+                    },
+                  });
                 }}
-                className="w-full px-4 py-2 text-sm text-red-400 hover:bg-red-950/30 rounded-lg transition-colors border border-red-500/30"
+                className="text-sm sm:text-base"
               >
                 Logout
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="space-y-2">
-              <button
-                onClick={() => setShowLogin(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-yellow-400 hover:bg-gray-800 rounded-lg transition-colors border border-yellow-500/30"
+              <Button
+                variant="outline"
+                size="full"
+                onClick={() => {
+                  openModal(MODAL_TYPES.LOGIN_MODAL);
+                  setIsMenuOpen(false);
+                }}
+                className="flex items-center justify-center gap-2 text-sm sm:text-base"
+                aria-label="Open login modal"
               >
-                <LogIn className="w-4 h-4" />
+                <LogIn className="w-4 h-4" aria-hidden="true" />
                 Login
-              </button>
-              <button
-                onClick={() => setShowRegister(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-medium hover:from-yellow-500 hover:to-yellow-700 rounded-lg transition-all"
+              </Button>
+              <Button
+                variant="primary"
+                size="full"
+                onClick={() => {
+                  openModal(MODAL_TYPES.REGISTER_MODAL);
+                  setIsMenuOpen(false);
+                }}
+                className="flex items-center justify-center gap-2 text-sm sm:text-base"
+                aria-label="Open registration modal"
               >
-                <UserPlus className="w-4 h-4" />
+                <UserPlus className="w-4 h-4" aria-hidden="true" />
                 Register
-              </button>
+              </Button>
             </div>
           )}
         </div>

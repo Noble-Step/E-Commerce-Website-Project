@@ -1,35 +1,92 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
-import Header from "./components/Header";
-import HomePage from "./pages/user/HomePage";
-import AboutPage from "./pages/user/AboutPage";
-import ContactPage from "./pages/user/ContactPage";
-import ShopPage from "./pages/user/ShopPage";
-import ProductDetailsPage from "./pages/user/ProductDetailsPage";
-import CartPage from "./pages/user/CartPage";
-import CheckoutPage from "./pages/user/CheckoutPage";
-import OrdersPage from "./pages/user/OrdersPage";
-import ProfilePage from "./pages/user/ProfilePage";
-import Login from "./modals/LoginModal";
-import NotFoundPage from "./pages/NotFoundPage";
-import AdminRoute from "./components/AdminRoute";
-
-// Admin Pages
-import AdminDashboard from "./pages/admin/DashboardPage";
-import AdminProducts from "./pages/admin/ProductsPage";
-import AdminUsers from "./pages/admin/UsersPage";
-import AdminOrders from "./pages/admin/OrdersPage";
-
-// Context Providers
+import { ModalProvider, useModal, MODAL_TYPES } from "./context/ModalContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { CartProvider } from "./context/CartContext";
 import { ProductProvider } from "./context/ProductContext";
 import { OrderProvider } from "./context/OrderContext";
 import { UserProvider } from "./context/UserContext";
-import Footer from "./components/Footer";
-// import { User } from 'lucide-react';
 
-// App Component
+// Components
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import AdminRoute from "./components/AdminRoute";
+import AdminDataBoundary from "./components/AdminDataBoundary";
+import Breadcrumbs from "./components/Breadcrumbs";
+import ScrollToTop from "./components/ScrollToTop";
+
+// Modals
+import LoginModal from "./modals/LoginModal";
+import RegisterModal from "./modals/RegisterModal";
+import AlertModal from "./modals/AlertModal";
+
+// Pages - User (Lazy loaded)
+const HomePage = lazy(() => import("./pages/user/HomePage"));
+const AboutPage = lazy(() => import("./pages/user/AboutPage"));
+const ContactPage = lazy(() => import("./pages/user/ContactPage"));
+const ShopPage = lazy(() => import("./pages/user/ShopPage"));
+const ProductDetailsPage = lazy(() => import("./pages/user/ProductDetailsPage"));
+const CartPage = lazy(() => import("./pages/user/CartPage"));
+const CheckoutPage = lazy(() => import("./pages/user/CheckoutPage"));
+const OrdersPage = lazy(() => import("./pages/user/OrdersPage"));
+const ProfilePage = lazy(() => import("./pages/user/ProfilePage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+
+// Pages - Admin (Lazy loaded)
+const AdminDashboard = lazy(() => import("./pages/admin/DashboardPage"));
+const AdminProducts = lazy(() => import("./pages/admin/ProductsPage"));
+const AdminUsers = lazy(() => import("./pages/admin/UsersPage"));
+const AdminOrders = lazy(() => import("./pages/admin/OrdersListPage"));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="bg-black text-white min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+      <p className="text-gray-400">Loading...</p>
+    </div>
+  </div>
+);
+
+/**
+ * ModalRoot Component
+ */
+function ModalRoot() {
+  const { isOpen, modalType, closeModal, openModal, modalProps } = useModal();
+
+  const handleSwitchToRegister = () => openModal(MODAL_TYPES.REGISTER_MODAL);
+  const handleSwitchToLogin = () => openModal(MODAL_TYPES.LOGIN_MODAL);
+
+  const handleLogin = (data) => {
+    if (data?.user) {
+    }
+  };
+
+  return (
+    <>
+      <LoginModal
+        isOpen={isOpen && modalType === MODAL_TYPES.LOGIN_MODAL}
+        onClose={closeModal}
+        onSwitchToRegister={handleSwitchToRegister}
+        onLogin={handleLogin}
+      />
+      <RegisterModal
+        isOpen={isOpen && modalType === MODAL_TYPES.REGISTER_MODAL}
+        onClose={closeModal}
+        onSwitchToLogin={handleSwitchToLogin}
+      />
+      <AlertModal
+        isOpen={isOpen && modalType === MODAL_TYPES.ALERT_MODAL}
+        onClose={closeModal}
+        {...modalProps}
+      />
+    </>
+  );
+}
+
+/*
+ * Main App Component
+ */
 function App() {
   return (
     <ThemeProvider>
@@ -37,56 +94,80 @@ function App() {
         <ProductProvider>
           <CartProvider>
             <OrderProvider>
-              <Header />
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/shop" element={<ShopPage />} />
-                <Route path="/product/:id" element={<ProductDetailsPage />} />
-                <Route path="/cart" element={<CartPage />} />
-                <Route path="/checkout" element={<CheckoutPage />} />
-                <Route path="/orders" element={<OrdersPage />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/login" element={<Login />} />
+              <ModalProvider>
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-yellow-400 focus:text-black focus:font-semibold focus:rounded-lg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                >
+                  Skip to main content
+                </a>
+                <ScrollToTop />
+                <Header />
+                <ModalRoot />
+                {/* <Breadcrumbs /> */}
+                <main id="main-content">
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Routes>
+                      {/* User Routes */}
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/about" element={<AboutPage />} />
+                      <Route path="/contact" element={<ContactPage />} />
+                      <Route path="/shop" element={<ShopPage />} />
+                      <Route path="/product/:id" element={<ProductDetailsPage />} />
+                      <Route path="/cart" element={<CartPage />} />
+                      <Route path="/checkout" element={<CheckoutPage />} />
+                      <Route path="/orders" element={<OrdersPage />} />
+                      <Route path="/profile" element={<ProfilePage />} />
 
-                {/* Admin Routes */}
-                <Route
-                  path="/admin"
-                  element={
-                    <AdminRoute>
-                      <AdminDashboard />
-                    </AdminRoute>
-                  }
-                />
-                <Route
-                  path="/admin/products"
-                  element={
-                    <AdminRoute>
-                      <AdminProducts />
-                    </AdminRoute>
-                  }
-                />
-                <Route
-                  path="/admin/users"
-                  element={
-                    <AdminRoute>
-                      <AdminUsers />
-                    </AdminRoute>
-                  }
-                />
-                <Route
-                  path="/admin/orders"
-                  element={
-                    <AdminRoute>
-                      <AdminOrders />
-                    </AdminRoute>
-                  }
-                />
+                      {/* Admin Routes */}
+                      <Route
+                        path="/admin"
+                        element={
+                          <AdminRoute>
+                            <AdminDataBoundary>
+                              <AdminDashboard />
+                            </AdminDataBoundary>
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/products"
+                        element={
+                          <AdminRoute>
+                            <AdminDataBoundary>
+                              <AdminProducts />
+                            </AdminDataBoundary>
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/users"
+                        element={
+                          <AdminRoute>
+                            <AdminDataBoundary>
+                              <AdminUsers />
+                            </AdminDataBoundary>
+                          </AdminRoute>
+                        }
+                      />
+                      <Route
+                        path="/admin/orders"
+                        element={
+                          <AdminRoute>
+                            <AdminDataBoundary>
+                              <AdminOrders />
+                            </AdminDataBoundary>
+                          </AdminRoute>
+                        }
+                      />
 
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-              <Footer />
+                      {/* Fallback */}
+                      <Route path="*" element={<NotFoundPage />} />
+                    </Routes>
+                  </Suspense>
+                </main>
+                <Footer />
+              </ModalProvider>
             </OrderProvider>
           </CartProvider>
         </ProductProvider>

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePageTitle } from "../../utils/usePageTitle";
 
 // Contact Page
 const ContactPage = () => {
+  usePageTitle("Contact Us");
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
@@ -32,23 +34,27 @@ const ContactPage = () => {
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
+      newErrors.name = "Please enter your name so we know how to address you";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email =
+        "Please enter your email address so we can respond to you";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email =
+        "Please enter a valid email address (e.g., yourname@example.com)";
     }
 
     if (!formData.subject.trim()) {
-      newErrors.subject = "Subject is required";
+      newErrors.subject =
+        "Please enter a subject line to help us understand your inquiry";
     }
 
     if (!formData.message.trim()) {
-      newErrors.message = "Message is required";
+      newErrors.message = "Please enter your message so we can help you";
     } else if (formData.message.trim().length < 10) {
-      newErrors.message = "Message must be at least 10 characters long";
+      newErrors.message =
+        "Your message is too short. Please provide at least 10 characters to help us understand your inquiry better";
     }
 
     setErrors(newErrors);
@@ -97,17 +103,25 @@ const ContactPage = () => {
               <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
 
               {submitSuccess && (
-                <div className="mb-6 p-4 bg-green-900/30 border border-green-400 rounded-lg text-green-400 text-sm">
+                <div
+                  className="mb-6 p-4 bg-green-900/30 border border-green-400 rounded-lg text-green-400 text-sm"
+                  role="alert"
+                  aria-live="polite"
+                >
                   Message sent successfully! We will get back to you soon.
                 </div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm mb-2 text-gray-400">
+                  <label
+                    htmlFor="contact-name"
+                    className="block text-sm mb-2 text-gray-400"
+                  >
                     Your Name *
                   </label>
                   <input
+                    id="contact-name"
                     type="text"
                     name="name"
                     value={formData.name}
@@ -118,17 +132,32 @@ const ContactPage = () => {
                         : "border-gray-700 focus:border-yellow-400"
                     }`}
                     placeholder="John Doe"
+                    aria-required="true"
+                    aria-invalid={errors.name ? "true" : "false"}
+                    aria-describedby={
+                      errors.name ? "contact-name-error" : undefined
+                    }
                   />
                   {errors.name && (
-                    <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                    <p
+                      id="contact-name-error"
+                      className="text-red-500 text-xs mt-1"
+                      role="alert"
+                    >
+                      {errors.name}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2 text-gray-400">
+                  <label
+                    htmlFor="contact-email"
+                    className="block text-sm mb-2 text-gray-400"
+                  >
                     Email Address *
                   </label>
                   <input
+                    id="contact-email"
                     type="email"
                     name="email"
                     value={formData.email}
@@ -139,17 +168,32 @@ const ContactPage = () => {
                         : "border-gray-700 focus:border-yellow-400"
                     }`}
                     placeholder="your@email.com"
+                    aria-required="true"
+                    aria-invalid={errors.email ? "true" : "false"}
+                    aria-describedby={
+                      errors.email ? "contact-email-error" : undefined
+                    }
                   />
                   {errors.email && (
-                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                    <p
+                      id="contact-email-error"
+                      className="text-red-500 text-xs mt-1"
+                      role="alert"
+                    >
+                      {errors.email}
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2 text-gray-400">
+                  <label
+                    htmlFor="contact-subject"
+                    className="block text-sm mb-2 text-gray-400"
+                  >
                     Subject *
                   </label>
                   <input
+                    id="contact-subject"
                     type="text"
                     name="subject"
                     value={formData.subject}
@@ -160,19 +204,32 @@ const ContactPage = () => {
                         : "border-gray-700 focus:border-yellow-400"
                     }`}
                     placeholder="How can we help?"
+                    aria-required="true"
+                    aria-invalid={errors.subject ? "true" : "false"}
+                    aria-describedby={
+                      errors.subject ? "contact-subject-error" : undefined
+                    }
                   />
                   {errors.subject && (
-                    <p className="text-red-500 text-xs mt-1">
+                    <p
+                      id="contact-subject-error"
+                      className="text-red-500 text-xs mt-1"
+                      role="alert"
+                    >
                       {errors.subject}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm mb-2 text-gray-400">
+                  <label
+                    htmlFor="contact-message"
+                    className="block text-sm mb-2 text-gray-400"
+                  >
                     Message *
                   </label>
                   <textarea
+                    id="contact-message"
                     name="message"
                     value={formData.message}
                     onChange={handleInputChange}
@@ -183,9 +240,18 @@ const ContactPage = () => {
                         : "border-gray-700 focus:border-yellow-400"
                     }`}
                     placeholder="Tell us more about your inquiry..."
+                    aria-required="true"
+                    aria-invalid={errors.message ? "true" : "false"}
+                    aria-describedby={
+                      errors.message ? "contact-message-error" : undefined
+                    }
                   ></textarea>
                   {errors.message && (
-                    <p className="text-red-500 text-xs mt-1">
+                    <p
+                      id="contact-message-error"
+                      className="text-red-500 text-xs mt-1"
+                      role="alert"
+                    >
                       {errors.message}
                     </p>
                   )}
@@ -226,9 +292,9 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold mb-1">Phone</h4>
-                    <p className="text-gray-400">+1 (555) 123-4567</p>
+                    <p className="text-gray-400">0942-400-3373</p>
                     <p className="text-gray-400 text-sm mt-1">
-                      Mon-Fri 9AM-6PM EST
+                      Mon-Sat 9AM-6PM
                     </p>
                   </div>
                 </div>
@@ -251,7 +317,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold mb-1">Email</h4>
-                    <p className="text-gray-400">support@shoestore.com</p>
+                    <p className="text-gray-400">noblestep@gmail.com</p>
                     <p className="text-gray-400 text-sm mt-1">
                       We'll respond within 24 hours
                     </p>
@@ -282,8 +348,13 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold mb-1">Address</h4>
-                    <p className="text-gray-400">123 Fashion Street</p>
-                    <p className="text-gray-400">New York, NY 10001</p>
+                    <p className="text-gray-400">
+                      Robinsons Place Malolos, 2nd Floor
+                    </p>
+                    <p className="text-gray-400">
+                      MacArthur Highway, Sumapang Matanda, Malolos City,
+                      Bulacan, Philippines
+                    </p>
                   </div>
                 </div>
               </div>

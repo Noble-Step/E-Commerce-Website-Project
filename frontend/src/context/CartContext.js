@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useUser } from "./UserContext";
+import API from "../services/api";
 
 const CartContext = createContext();
 
@@ -9,62 +10,136 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
 
+  // Load cart from backend when user logs in
   useEffect(() => {
-    if (user) {
-      const savedCart = localStorage.getItem(`cart_${user.id}`);
-      if (savedCart) {
-        setCartItems(JSON.parse(savedCart));
+    let mounted = true;
+    const load = async () => {
+      if (!user) {
+        setCartItems([]);
+        return;
       }
-    } else {
-      setCartItems([]);
-    }
+      try {
+        const response = await API.get(`/cart`);
+        const data = response.data;
+        const cart = data.cart || data;
+        if (!mounted) return;
+        // normalize items to match frontend shape
+        const items = (cart.items || []).map((it) => {
+          // Extract product ID - handle both populated objects and string IDs
+          const productId = typeof it.product === 'object' && it.product !== null
+            ? (it.product._id || it.product.id || String(it.product))
+            : (it.product || '');
+          
+          // Extract item ID - prefer it._id, then product ID, fallback to empty string
+          const itemId = it._id || productId || '';
+          
+          return {
+            id: String(itemId),
+            productId: String(productId),
+            name: typeof it.product === 'object' && it.product !== null ? it.product.name : '',
+            price: typeof it.product === 'object' && it.product !== null ? it.product.price : 0,
+            image: typeof it.product === 'object' && it.product !== null
+              ? (Array.isArray(it.product.images) ? it.product.images[0] : it.product.image || "")
+              : "",
+            quantity: it.quantity,
+            size: it.size || null,
+          };
+        });
+        setCartItems(items);
+      } catch (err) {
+        setCartItems([]);
+      }
+    };
+    load();
+    return () => (mounted = false);
   }, [user]);
 
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(`cart_${user.id}`, JSON.stringify(cartItems));
-    }
     const total = cartItems.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
     setCartTotal(total);
-  }, [cartItems, user]);
+  }, [cartItems]);
 
-  const addToCart = (product, quantity = 1) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.id === product.id);
-      if (existingItem) {
-        return prevItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [...prevItems, { ...product, quantity }];
-    });
-  };
+  const addToCart = async (product, quantity = 1, size = null) => {
+    if (!user) throw new Error("Login required");
+    const payload = {
+      productId: product._id || product.id || product.productId,
+      quantity,
+    };
 
-  const removeFromCart = (productId) => {
-    setCartItems((prevItems) =>
-      prevItems.filter((item) => item.id !== productId)
-    );
-  };
-
-  const updateQuantity = (productId, quantity) => {
-    if (quantity < 1) return;
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === productId ? { ...item, quantity } : item
-      )
-    );
-  };
-
-  const clearCart = () => {
-    setCartItems([]);
-    if (user) {
-      localStorage.removeItem(`cart_${user.id}`);
+    if (size !== undefined && size !== null && size !== "") {
+      payload.size = size;
     }
+
+    const response = await API.post(`/cart`, payload);
+    const data = response.data;
+    const cart = data.cart || data;
+    const items = (cart.items || []).map((it) => {
+      // Extract product ID - handle both populated objects and string IDs
+      const productId = typeof it.product === 'object' && it.product !== null
+        ? (it.product._id || it.product.id || String(it.product))
+        : (it.product || '');
+      
+      // Extract item ID - prefer it._id, then product ID, fallback to empty string
+      const itemId = it._id || productId || '';
+      
+      return {
+        id: String(itemId),
+        productId: String(productId),
+        name: typeof it.product === 'object' && it.product !== null ? it.product.name : '',
+        price: typeof it.product === 'object' && it.product !== null ? it.product.price : 0,
+        image: typeof it.product === 'object' && it.product !== null
+          ? (Array.isArray(it.product.images) ? it.product.images[0] : it.product.image || "")
+          : "",
+        quantity: it.quantity,
+        size: it.size || null,
+      };
+    });
+    setCartItems(items);
+  };
+
+  const removeFromCart = async (itemId) => {
+    if (!user) return;
+    await API.delete(`/cart/${itemId}`);
+    setCartItems((prev) => prev.filter((i) => String(i.id) !== String(itemId)));
+  };
+
+  const updateQuantity = async (itemId, quantity) => {
+    if (quantity < 1) return;
+    const response = await API.put(`/cart/${itemId}`, { quantity });
+    const data = response.data;
+    const cart = data.cart || data;
+    const items = (cart.items || []).map((it) => {
+      // Extract product ID - handle both populated objects and string IDs
+      const productId = typeof it.product === 'object' && it.product !== null
+        ? (it.product._id || it.product.id || String(it.product))
+        : (it.product || '');
+      
+      // Extract item ID - prefer it._id, then product ID, fallback to empty string
+      const itemId = it._id || productId || '';
+      
+      return {
+        id: String(itemId),
+        productId: String(productId),
+        name: typeof it.product === 'object' && it.product !== null ? it.product.name : '',
+        price: typeof it.product === 'object' && it.product !== null ? it.product.price : 0,
+        image: typeof it.product === 'object' && it.product !== null
+          ? (Array.isArray(it.product.images) ? it.product.images[0] : it.product.image || "")
+          : "",
+        quantity: it.quantity,
+        size: it.size || null,
+      };
+    });
+    setCartItems(items);
+  };
+
+  const clearCart = async () => {
+    if (user) {
+      await API.delete(`/cart`);
+    }
+    setCartItems([]);
   };
 
   return (

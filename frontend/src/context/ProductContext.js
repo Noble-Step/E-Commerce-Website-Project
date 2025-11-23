@@ -1,20 +1,47 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import mockProducts from "../data/products";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
+import API from "../services/api";
 
-const ProductContext = createContext();
+const storageKey = "productsCache";
+const ProductContext = createContext(null);
+
+const loadProductsFromStorage = () => {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    // ignore
+  }
+  return [];
+};
+
+const persistProducts = (items) => {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(items));
+  } catch (err) {
+    // ignore
+  }
+};
 
 // Product Provider
 export const ProductProvider = ({ children }) => {
-  const [products, setProducts] = useState(() => {
-    try {
-      const raw = localStorage.getItem("products");
-      if (raw) return JSON.parse(raw);
-    } catch (err) {}
-    return [];
-  });
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState(() => loadProductsFromStorage());
+  const [categories, setCategories] = useState(() =>
+    [...new Set(loadProductsFromStorage().map((p) => p.category))].filter(
+      Boolean
+    )
+  );
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [filters, setFilters] = useState({
     category: "",
     priceRange: [0, 1000],
@@ -22,36 +49,63 @@ export const ProductProvider = ({ children }) => {
     search: "",
   });
 
+  const productsRef = useRef(products);
   useEffect(() => {
-    try {
-      if (!products || products.length === 0) {
-        const data = mockProducts || [];
-        setProducts(data);
-        const uniqueCategories = [
-          ...new Set(data.map((product) => product.category)),
-        ];
-        setCategories(uniqueCategories);
-      } else {
-        const uniqueCategories = [
-          ...new Set(products.map((product) => product.category)),
-        ];
-        setCategories(uniqueCategories);
-      }
-    } catch (err) {
-      setError(err.message || String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("products", JSON.stringify(products));
-    } catch (err) {}
+    productsRef.current = products;
   }, [products]);
 
+  useEffect(() => {
+    persistProducts(products);
+    const uniqueCategories = [
+      ...new Set(products.map((product) => product.category).filter(Boolean)),
+    ];
+    setCategories(uniqueCategories);
+  }, [products]);
+
+  const seedSampleProducts = useCallback(() => {
+    setProducts([]);
+    return [];
+  }, []);
+
+  const fetchProducts = useCallback(async () => {
+    const response = await API.get(`/products`);
+    const data = response.data;
+    const items = data.products || data;
+    return Array.isArray(items) ? items : [];
+  }, []);
+
+  const syncProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const fetched = await fetchProducts();
+      if (!fetched.length) {
+        return seedSampleProducts();
+      }
+      setProducts(fetched);
+      return fetched;
+    } catch (err) {
+      setError(
+        err?.response?.data?.message || err.message || "Unable to load products"
+      );
+      if (productsRef.current?.length) {
+        return productsRef.current;
+      }
+      return seedSampleProducts();
+    } finally {
+      setLoading(false);
+      setIsHydrated(true);
+    }
+  }, [fetchProducts, seedSampleProducts]);
+
+  useEffect(() => {
+    syncProducts();
+  }, [syncProducts]);
+
   const getProduct = (id) => {
-    return products.find((product) => product.id === id);
+    return products.find(
+      (product) => String(product._id || product.id) === String(id)
+    );
   };
 
   const getFilteredProducts = () => {
@@ -61,10 +115,13 @@ export const ProductProvider = ({ children }) => {
       const matchesPrice =
         product.price >= filters.priceRange[0] &&
         product.price <= filters.priceRange[1];
-      const matchesRating = product.rating >= filters.rating;
+      const matchesRating =
+        (product.ratings?.average ?? product.rating ?? 0) >= filters.rating;
       const matchesSearch =
-        product.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        product.description
+        (product.name || "")
+          .toLowerCase()
+          .includes(filters.search.toLowerCase()) ||
+        (product.description || "")
           .toLowerCase()
           .includes(filters.search.toLowerCase());
 
@@ -76,19 +133,32 @@ export const ProductProvider = ({ children }) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
-  const addProduct = (product) => {
-    const newProduct = { ...product, id: product.id || Date.now() };
-    setProducts((prev) => [newProduct, ...prev]);
+  const addProduct = async (product) => {
+    const response = await API.post(`/products`, product);
+    const data = response.data;
+    const created = data.product || data;
+    setProducts((prev) => [created, ...prev]);
+    return created;
   };
 
-  const updateProduct = (product) => {
+  const updateProduct = async (productId, updates) => {
+    const response = await API.put(`/products/${productId}`, updates);
+    const data = response.data;
+    const updated = data.product || data;
     setProducts((prev) =>
-      prev.map((p) => (p.id === product.id ? { ...p, ...product } : p))
+      prev.map((p) =>
+        String(p._id || p.id) === String(productId) ? updated : p
+      )
     );
+    return updated;
   };
 
-  const deleteProduct = (productId) => {
-    setProducts((prev) => prev.filter((p) => p.id !== productId));
+  const deleteProduct = async (productId) => {
+    await API.delete(`/products/${productId}`);
+    setProducts((prev) =>
+      prev.filter((p) => String(p._id || p.id) !== String(productId))
+    );
+    return true;
   };
 
   return (
@@ -98,6 +168,7 @@ export const ProductProvider = ({ children }) => {
         categories,
         loading,
         error,
+        isHydrated,
         filters,
         getProduct,
         getFilteredProducts,
@@ -105,6 +176,8 @@ export const ProductProvider = ({ children }) => {
         addProduct,
         updateProduct,
         deleteProduct,
+        syncProducts,
+        seedSampleProducts,
       }}
     >
       {children}
