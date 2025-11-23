@@ -22,7 +22,10 @@ try {
 } catch (error) {
   console.error("❌ Environment validation failed:");
   console.error(error.message);
-  process.exit(1);
+  // Don't exit in production (Vercel serverless)
+  if (process.env.NODE_ENV !== "production") {
+    process.exit(1);
+  }
 }
 
 // Import routes
@@ -40,9 +43,9 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles for React
+        styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
-        imgSrc: ["'self'", "data:", "https:", "http://localhost:5000"], // Allow images from backend
+        imgSrc: ["'self'", "data:", "https:", "http://localhost:5000"],
         connectSrc: [
           "'self'",
           process.env.FRONTEND_URL || "http://localhost:3000",
@@ -53,14 +56,19 @@ app.use(
         frameSrc: ["'none'"],
       },
     },
-    crossOriginEmbedderPolicy: false, // Disable for compatibility
-    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin requests
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
 
+// ✅ FIXED: Updated CORS to allow your Vercel frontend
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: [
+      "https://frontend-noble-step.vercel.app",
+      "http://localhost:3000",
+      process.env.FRONTEND_URL
+    ].filter(Boolean),
     credentials: true,
   })
 );
@@ -68,16 +76,14 @@ app.use(
 // Logging middleware
 app.use(httpLogger);
 
-// Compression middleware (should be before routes)
+// Compression middleware
 app.use(
   compression({
-    level: 6, // Compression level (0-9, 6 is a good balance)
+    level: 6,
     filter: (req, res) => {
-      // Don't compress responses if client doesn't support it
       if (req.headers["x-no-compression"]) {
         return false;
       }
-      // Compress all other responses
       return true;
     },
   })
@@ -128,22 +134,53 @@ app.use((req, res) => {
   });
 });
 
-// Start server after database connection
-const startServer = async () => {
-  try {
-    // Connect to MongoDB first
-    await connectDb();
+// ✅ CRITICAL FIX: Connect to database and handle Vercel serverless
+let isConnected = false;
 
-    // Start server only after database connection is established
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      infoLogger(`🚀 Server is running on port ${PORT}`);
-      infoLogger(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
-    });
+const ensureDbConnection = async () => {
+  if (isConnected) {
+    return;
+  }
+  try {
+    await connectDb();
+    isConnected = true;
+    infoLogger("📊 Database connected for serverless function");
   } catch (error) {
-    errorLogger("Failed to start server", error);
-    process.exit(1);
+    errorLogger("Database connection failed", error);
+    throw error;
   }
 };
 
-startServer();
+// ✅ CRITICAL FIX: Only start server in development, export for Vercel
+if (process.env.NODE_ENV !== "production") {
+  const startServer = async () => {
+    try {
+      await connectDb();
+      const PORT = process.env.PORT || 5000;
+      app.listen(PORT, () => {
+        infoLogger(`🚀 Server is running on port ${PORT}`);
+        infoLogger(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
+      });
+    } catch (error) {
+      errorLogger("Failed to start server", error);
+      process.exit(1);
+    }
+  };
+  startServer();
+} else {
+  // For Vercel: Connect to DB on each request
+  app.use(async (req, res, next) => {
+    try {
+      await ensureDbConnection();
+      next();
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "Database connection failed",
+      });
+    }
+  });
+}
+
+// ✅ CRITICAL: Export for Vercel
+module.exports = app;
