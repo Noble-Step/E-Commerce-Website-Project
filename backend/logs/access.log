@@ -2898,3 +2898,12 @@
 [2025-11-23T13:05:44.154Z] GET /uploads/shoes/derby1-1.jpg - Status: 304 - Duration: 4ms
 [2025-11-23T13:05:44.155Z] GET /uploads/shoes/oxford3-1.jpg - Status: 304 - Duration: 4ms
 [2025-11-23T13:05:44.197Z] GET /api/reviews/recent?limit=3 - Status: 200 - Duration: 86ms
+[2025-11-23T13:50:54.444Z] GET /api/products - Status: 200 - Duration: 87ms
+[2025-11-23T13:50:54.448Z] GET /api/products - Status: 304 - Duration: 2ms
+[2025-11-23T13:50:54.660Z] GET /api/products?sortBy=rating&limit=3 - Status: 304 - Duration: 66ms
+[2025-11-23T13:50:54.662Z] GET /api/products?sortBy=rating&limit=3 - Status: 304 - Duration: 1ms
+[2025-11-23T13:50:54.700Z] GET /uploads/shoes/loafers1-1.jpg - Status: 304 - Duration: 3ms
+[2025-11-23T13:50:54.701Z] GET /uploads/shoes/derby1-1.jpg - Status: 304 - Duration: 3ms
+[2025-11-23T13:50:54.702Z] GET /uploads/shoes/oxford3-1.jpg - Status: 304 - Duration: 3ms
+[2025-11-23T13:50:54.705Z] GET /api/reviews/recent?limit=3 - Status: 200 - Duration: 108ms
+[2025-11-23T13:50:54.836Z] GET /api/reviews/recent?limit=3 - Status: 200 - Duration: 131ms
