@@ -35,6 +35,7 @@ const ShopPage = () => {
   };
   const [priceRange, setPriceRange] = useState([40, 1000]);
   const [selectedRating, setSelectedRating] = useState("");
+  const [selectedRatings, setSelectedRatings] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [searchTerm, setSearchTerm] = useState(
@@ -95,6 +96,12 @@ const ShopPage = () => {
     );
   };
 
+  const handleRatingToggle = (rating) => {
+    setSelectedRatings((prev) =>
+      prev.includes(rating) ? prev.filter((r) => r !== rating) : [...prev, rating]
+    );
+  };
+
   const handleSizeToggle = (size) => {
     setSelectedSizes((prev) =>
       prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
@@ -104,6 +111,7 @@ const ShopPage = () => {
   const clearFilters = () => {
     setPriceRange([40, 1000]);
     setSelectedRating("");
+    setSelectedRatings([]);
     setSelectedCategories([]);
     setSelectedSizes([]);
     setSearchTerm("");
@@ -121,10 +129,10 @@ const ShopPage = () => {
     // Rating filter - use ratings.average if available, fallback to rating
     const productRating = product.ratings?.average ?? product.rating ?? 0;
     const matchesRating =
-      !selectedRating ||
-      (selectedRating === "5★ Stars"
-        ? productRating === 5
-        : productRating >= 4);
+      selectedRatings.length === 0 ||
+      selectedRatings.some((sr) =>
+        sr === "5★ Stars" ? productRating === 5 : productRating >= 4
+      );
 
     // Category filter with case-insensitive comparison and trim whitespace
     const productCategory = product.category ? product.category.trim() : "";
@@ -281,23 +289,23 @@ const ShopPage = () => {
           {/* --- Rating --- */}
           <div>
             <h4 className="text-sm font-medium text-gray-300 mb-2">Rating</h4>
-            <div className="flex flex-row gap-10">
-              {ratings.map((rating) => (
-                <label
-                  key={rating}
-                  className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name="rating"
-                    checked={selectedRating === rating}
-                    onChange={() => setSelectedRating(rating)}
-                    className="w-4 h-4 accent-yellow-500 cursor-pointer"
-                  />
-                  <span>{rating}</span>
-                </label>
-              ))}
-            </div>
+            <div className="flex flex-row gap-6">
+                {ratings.map((rating) => (
+                  <label
+                    key={rating}
+                    className="flex items-center gap-2 text-gray-400 hover:text-yellow-400 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      name={`rating-${rating}`}
+                      checked={selectedRatings.includes(rating)}
+                      onChange={() => handleRatingToggle(rating)}
+                      className="w-4 h-4 accent-yellow-500 cursor-pointer"
+                    />
+                    <span>{rating}</span>
+                  </label>
+                ))}
+              </div>
           </div>
 
           {/* --- Category --- */}
