@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, ShoppingCart, User, LogIn, UserPlus } from "lucide-react";
 import { ALERT_TYPES } from "../modals/AlertModal";
 import { useUser } from "../context/UserContext";
@@ -16,6 +16,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { openModal } = useModal();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleCartClick = () => {
     if (!user) {
@@ -31,37 +32,74 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex items-center justify-between py-3 sm:py-4 gap-2 sm:gap-4">
             {/* Logo and Brand - Always visible */}
-            <Link to="/" className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <Link
+              to="/"
+              className="flex items-center gap-2 sm:gap-3 flex-shrink-0"
+            >
               <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center">
-                <img src={logo} alt="Noble Step" className="w-full h-full object-contain" />
-              </div> 
+                <img
+                  src={logo}
+                  alt="Noble Step"
+                  className="w-full h-full object-contain"
+                />
+              </div>
               <span className="text-base sm:text-xl font-semibold text-yellow-400 whitespace-nowrap">
                 Noble Step
               </span>
             </Link>
 
             {/* Desktop Navigation Bar (lg and above) */}
-            <nav className="hidden lg:flex items-center gap-2 xl:gap-4" aria-label="Main navigation">
-              <NavLink to="/" className="whitespace-nowrap text-sm xl:text-base">
-                Home
-              </NavLink>
-              <NavLink to="/shop" className="whitespace-nowrap text-sm xl:text-base">
-                Products
-              </NavLink>
-              <NavLink to="/orders" className="whitespace-nowrap text-sm xl:text-base">
-                Orders
-              </NavLink>
-              <NavLink to="/about" className="whitespace-nowrap text-sm xl:text-base">
-                About
-              </NavLink>
-              <NavLink to="/contact" className="whitespace-nowrap text-sm xl:text-base">
-                Contact
-              </NavLink>
-              {user?.isAdmin && (
-                <NavLink to="/admin" variant="admin" className="whitespace-nowrap text-sm xl:text-base">
-                  Admin Dashboard
-                </NavLink>
-              )}
+            <nav
+              className="hidden lg:flex items-center gap-2 xl:gap-4"
+              aria-label="Main navigation"
+            >
+              {(() => {
+                const makeClass = (path) => {
+                  const base = "whitespace-nowrap text-sm xl:text-base";
+                  const active =
+                    path === "/"
+                      ? location.pathname === "/"
+                      : location.pathname.startsWith(path);
+                  return `${base} ${
+                    active
+                      ? "bg-yellow-500 !text-black px-4 py-2 rounded-full font-semibold"
+                      : "text-gray-300 hover:text-yellow-400 hover:bg-gray-800 rounded-lg"
+                  }`;
+                };
+
+                return (
+                  <>
+                    <NavLink to="/" className={makeClass("/")}>
+                      Home
+                    </NavLink>
+                    <NavLink to="/shop" className={makeClass("/shop")}>
+                      Products
+                    </NavLink>
+                    <NavLink to="/orders" className={makeClass("/orders")}>
+                      Orders
+                    </NavLink>
+                    <NavLink to="/about" className={makeClass("/about")}>
+                      About
+                    </NavLink>
+                    <NavLink to="/contact" className={makeClass("/contact")}>
+                      Contact
+                    </NavLink>
+                    {user?.isAdmin && (
+                      <NavLink
+                        to="/admin"
+                        variant="admin"
+                        className={
+                          location.pathname.startsWith("/admin")
+                            ? "whitespace-nowrap text-sm xl:text-base bg-yellow-500 !text-black px-4 py-2 rounded-full font-semibold"
+                            : "whitespace-nowrap text-sm xl:text-base text-yellow-400 hover:bg-yellow-500/20 rounded-lg"
+                        }
+                      >
+                        Admin Dashboard
+                      </NavLink>
+                    )}
+                  </>
+                );
+              })()}
             </nav>
 
             {/* Right Side Actions - Compact on mobile */}
@@ -96,7 +134,7 @@ const Header = () => {
                   >
                     <LogIn className="w-5 h-5 text-yellow-400" />
                   </button>
-                  
+
                   <Button
                     variant="primary"
                     size="md"
@@ -116,11 +154,16 @@ const Header = () => {
                 className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-800 transition-colors relative"
                 aria-label={`Shopping cart${
                   cartItems.length > 0
-                    ? `, ${cartItems.length} item${cartItems.length !== 1 ? "s" : ""}`
+                    ? `, ${cartItems.length} item${
+                        cartItems.length !== 1 ? "s" : ""
+                      }`
                     : ", empty"
                 }`}
               >
-                <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" aria-hidden="true" />
+                <ShoppingCart
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400"
+                  aria-hidden="true"
+                />
                 {cartItems.length > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-[10px] sm:text-xs font-bold rounded-full flex items-center justify-center">
                     {cartItems.length > 99 ? "99+" : cartItems.length}
@@ -137,9 +180,15 @@ const Header = () => {
                 aria-controls="mobile-menu"
               >
                 {isMenuOpen ? (
-                  <X className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" aria-hidden="true" />
+                  <X
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400"
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" aria-hidden="true" />
+                  <Menu
+                    className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400"
+                    aria-hidden="true"
+                  />
                 )}
               </button>
             </div>
@@ -165,7 +214,9 @@ const Header = () => {
         aria-hidden={!isMenuOpen}
       >
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-yellow-500/20">
-          <h2 className="text-lg sm:text-xl font-semibold text-yellow-400">Menu</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-yellow-400">
+            Menu
+          </h2>
           <button
             onClick={() => setIsMenuOpen(false)}
             className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-800 transition-colors"
@@ -175,32 +226,89 @@ const Header = () => {
           </button>
         </div>
 
-        <nav className="p-3 sm:p-4 space-y-1 sm:space-y-2 overflow-y-auto" style={{ maxHeight: "calc(100vh - 200px)" }} aria-label="Main navigation">
+        <nav
+          className="p-3 sm:p-4 space-y-1 sm:space-y-2 overflow-y-auto"
+          style={{ maxHeight: "calc(100vh - 200px)" }}
+          aria-label="Main navigation"
+        >
           {user?.isAdmin && (
             <NavLink
               to="/admin"
               onClick={() => setIsMenuOpen(false)}
               variant="admin"
+              className={
+                location.pathname.startsWith("/admin")
+                  ? "bg-yellow-500 !text-black px-4 py-2 rounded-lg"
+                  : "text-yellow-400 hover:bg-yellow-500/10 rounded-lg"
+              }
             >
               Admin Dashboard
             </NavLink>
           )}
-          <NavLink to="/" onClick={() => setIsMenuOpen(false)}>
+          <NavLink
+            to="/"
+            onClick={() => setIsMenuOpen(false)}
+            className={
+              location.pathname === "/"
+                ? "bg-yellow-500 !text-black px-4 py-2 rounded-lg"
+                : "text-gray-300 hover:bg-gray-800 rounded-lg"
+            }
+          >
             Home
           </NavLink>
-          <NavLink to="/profile" onClick={() => setIsMenuOpen(false)}>
+          <NavLink
+            to="/profile"
+            onClick={() => setIsMenuOpen(false)}
+            className={
+              location.pathname.startsWith("/profile")
+                ? "bg-yellow-500 !text-black px-4 py-2 rounded-lg"
+                : "text-gray-300 hover:bg-gray-800 rounded-lg"
+            }
+          >
             Profile
           </NavLink>
-          <NavLink to="/shop" onClick={() => setIsMenuOpen(false)}>
+          <NavLink
+            to="/shop"
+            onClick={() => setIsMenuOpen(false)}
+            className={
+              location.pathname.startsWith("/shop")
+                ? "bg-yellow-500 !text-black px-4 py-2 rounded-lg"
+                : "text-gray-300 hover:bg-gray-800 rounded-lg"
+            }
+          >
             Products
           </NavLink>
-          <NavLink to="/orders" onClick={() => setIsMenuOpen(false)}>
+          <NavLink
+            to="/orders"
+            onClick={() => setIsMenuOpen(false)}
+            className={
+              location.pathname.startsWith("/orders")
+                ? "bg-yellow-500 !text-black px-4 py-2 rounded-lg"
+                : "text-gray-300 hover:bg-gray-800 rounded-lg"
+            }
+          >
             Orders
           </NavLink>
-          <NavLink to="/about" onClick={() => setIsMenuOpen(false)}>
+          <NavLink
+            to="/about"
+            onClick={() => setIsMenuOpen(false)}
+            className={
+              location.pathname.startsWith("/about")
+                ? "bg-yellow-500 !text-black px-4 py-2 rounded-lg"
+                : "text-gray-300 hover:bg-gray-800 rounded-lg"
+            }
+          >
             About
           </NavLink>
-          <NavLink to="/contact" onClick={() => setIsMenuOpen(false)}>
+          <NavLink
+            to="/contact"
+            onClick={() => setIsMenuOpen(false)}
+            className={
+              location.pathname.startsWith("/contact")
+                ? "bg-yellow-500 text-black px-4 py-2 rounded-lg"
+                : "text-gray-300 hover:bg-gray-800 rounded-lg"
+            }
+          >
             Contact
           </NavLink>
         </nav>

@@ -19,7 +19,7 @@ const NavLink = ({
       "flex items-center px-4 py-3 text-yellow-400 hover:bg-yellow-500/20 rounded-lg transition-colors font-medium",
   };
 
-  const linkClass = `${variants[variant]} ${className}`;
+  const linkClass = `${variants[variant]} ${className}`.trim();
 
   return (
     <Link to={to} onClick={onClick} className={linkClass}>

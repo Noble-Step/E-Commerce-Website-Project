@@ -114,7 +114,10 @@ const AdminLayout = ({ children }) => {
           {/* Navigation */}
           <nav className="p-4 space-y-1">
             {menuItems.map((item) => {
-              const isActive = location.pathname === item.path;
+              const isActive =
+                location.pathname === item.path ||
+                (item.path !== "/admin" &&
+                  location.pathname.startsWith(item.path));
               return (
                 <Link
                   key={item.path}
@@ -124,7 +127,7 @@ const AdminLayout = ({ children }) => {
                     flex items-center gap-3 px-4 py-3 rounded-lg transition-colors
                     ${
                       isActive
-                        ? "bg-yellow-400/10 text-yellow-400"
+                        ? "bg-yellow-500/10 text-yellow-400 border-l-4 border-yellow-400"
                         : "text-gray-400 hover:bg-gray-800 hover:text-yellow-400"
                     }
                   `}

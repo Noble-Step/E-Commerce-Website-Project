@@ -132,9 +132,11 @@ const OrdersListPage = () => {
       const orderId = order.id || order._id;
       const isExpanded = expandedOrder === orderId;
       const shipping = order.shipping || {};
+      const user = order.user || {};
       const customerName =
-        `${shipping.firstName || ""} ${shipping.lastName || ""}`.trim() ||
-        "Customer";
+        `${shipping.firstName || user.firstName || user.name || ""} ${
+          shipping.lastName || user.lastName || ""
+        }`.trim() || (user.email ? user.email.split("@")[0] : "Customer");
       const addressLine = [
         shipping.address,
         shipping.city,
@@ -207,8 +209,14 @@ const OrdersListPage = () => {
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
                   <Detail label="Name" value={customerName} />
-                  <Detail label="Email" value={shipping.email || "—"} />
-                  <Detail label="Phone" value={shipping.phone || "—"} />
+                  <Detail
+                    label="Email"
+                    value={shipping.email || user.email || "—"}
+                  />
+                  <Detail
+                    label="Phone"
+                    value={shipping.phone || user.phone || "—"}
+                  />
                   <Detail label="Address" value={addressLine || "—"} />
                 </div>
               </div>

@@ -62,13 +62,14 @@ const CheckoutPage = () => {
       setError("Please enter a valid email address");
     }
     // Real-time validation for ZIP
-    if (name === "zip" && value && !/^\d{5}(-\d{4})?$/.test(value)) {
-      setError("Please enter a valid ZIP code (e.g., 12345)");
+    if (name === "zip" && value && !/^\d+$/.test(value)) {
+      setError("Please enter a valid ZIP code (numbers only)");
     }
   };
 
   useEffect(() => {
-    if (cartItems.length === 0) {
+    // Do not auto-redirect to cart while a success modal is open
+    if (cartItems.length === 0 && !showAlert) {
       navigate("/cart");
     }
   }, [cartItems, navigate]);
@@ -124,8 +125,8 @@ const CheckoutPage = () => {
         return false;
       }
       // Validate ZIP code format (basic)
-      if (formData.zip && !/^\d{5}(-\d{4})?$/.test(formData.zip)) {
-        setError("Please enter a valid ZIP code (e.g., 12345 or 12345-6789)");
+      if (formData.zip && !/^\d+$/.test(formData.zip)) {
+        setError("Please enter a valid ZIP code (numbers only)");
         return false;
       }
     } else {
@@ -267,9 +268,8 @@ const CheckoutPage = () => {
           shipping,
         });
 
-        // Payment successful
+        // Payment successful - show success modal first, clear cart after user confirms
         setPaymentStatus("success");
-        clearCart();
         setAlertConfig(ALERT_TYPES.ORDER_SUCCESS);
         setShowAlert(true);
       } catch (err) {
@@ -292,7 +292,13 @@ const CheckoutPage = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertConfig, setAlertConfig] = useState(null);
 
-  const handleAlertConfirm = () => {
+  const handleAlertConfirm = async () => {
+    // Clear cart now that the user has seen the success modal
+    try {
+      await clearCart();
+    } catch (err) {
+      // ignore errors clearing cart
+    }
     setShowAlert(false);
     navigate("/orders");
   };

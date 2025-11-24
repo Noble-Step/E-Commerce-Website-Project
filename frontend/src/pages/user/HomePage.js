@@ -391,7 +391,7 @@ export default function Home() {
 
       {/* Brand Banner Section */}
       <section className="bg-[#d4af37] py-3 md:py-4 flex flex-wrap justify-center items-center gap-4 sm:gap-6 md:gap-8 text-black font-medium tracking-wide text-xs sm:text-sm md:text-base px-4">
-        <span
+        {/* <span
           onClick={() => navigate("/shop?brand=versace")}
           className="hover:underline cursor-pointer"
         >
@@ -420,7 +420,7 @@ export default function Home() {
           className="hover:underline cursor-pointer"
         >
           Calvin Klein
-        </span>
+        </span> */}
       </section>
 
       {/* Newsletter Section */}

@@ -28,7 +28,7 @@ const ProductDetailsPage = () => {
 
   usePageTitle(product ? productName : "Product Details");
 
-  const [selectedSize, setSelectedSize] = useState("Medium");
+  const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState("");
   const [rating, setRating] = useState(0);
@@ -41,6 +41,20 @@ const ProductDetailsPage = () => {
   useEffect(() => {
     if (product) {
       setSelectedImage(product.images?.[0] || product.image || "");
+    }
+  }, [product]);
+
+  // Initialize selected size from product.sizes when product loads
+  useEffect(() => {
+    if (product) {
+      const sizes = Array.isArray(product.sizes) ? product.sizes : [];
+      if (sizes.length > 0) {
+        // prefer existing selection if still available, otherwise pick first
+        setSelectedSize((prev) => (sizes.includes(prev) ? prev : sizes[0]));
+      } else {
+        // keep previous selection or reset to empty
+        setSelectedSize((prev) => prev || "");
+      }
     }
   }, [product]);
 
@@ -153,7 +167,7 @@ const ProductDetailsPage = () => {
     }
 
     try {
-      await addToCart({ ...product }, quantity);
+      await addToCart({ ...product }, quantity, selectedSize);
       openAlert(ALERT_TYPES.ADDED_TO_CART);
     } catch (error) {
       openAlert({
@@ -325,26 +339,44 @@ const ProductDetailsPage = () => {
             <div>
               <h3 className="text-sm font-medium mb-3">Choose Size</h3>
               <div
-                className="flex gap-3"
+                className="flex gap-3 flex-wrap"
                 role="radiogroup"
                 aria-label="Product size selection"
               >
-                {["Small", "Medium", "Large"].map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-6 py-2 rounded-full text-sm font-medium transition min-h-[44px] ${
-                      selectedSize === size
-                        ? "bg-yellow-400 text-black"
-                        : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                    }`}
-                    role="radio"
-                    aria-checked={selectedSize === size}
-                    aria-label={`Size ${size}`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {Array.isArray(product.sizes) && product.sizes.length > 0
+                  ? product.sizes.map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition min-h-[44px] ${
+                          selectedSize === size
+                            ? "bg-yellow-400 text-black"
+                            : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                        }`}
+                        role="radio"
+                        aria-checked={selectedSize === size}
+                        aria-label={`Size ${size}`}
+                      >
+                        {size}
+                      </button>
+                    ))
+                  : // Fallback sizes if product.sizes is not provided
+                    ["Small", "Medium", "Large"].map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-6 py-2 rounded-full text-sm font-medium transition min-h-[44px] ${
+                          selectedSize === size
+                            ? "bg-yellow-400 text-black"
+                            : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                        }`}
+                        role="radio"
+                        aria-checked={selectedSize === size}
+                        aria-label={`Size ${size}`}
+                      >
+                        {size}
+                      </button>
+                    ))}
               </div>
             </div>
 
