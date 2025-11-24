@@ -5,8 +5,9 @@ const {
   loginUser,
   getUserProfile,
   updateUserProfile,
+  getAllUsers,
 } = require("../controllers/userController");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, admin } = require("../middleware/authMiddleware");
 const {
   validateUserRegistration,
   validateUserLogin,
@@ -17,5 +18,7 @@ router.post("/register", validateUserRegistration, registerUser);
 router.post("/login", validateUserLogin, loginUser);
 router.get("/profile", protect, getUserProfile);
 router.put("/profile", protect, validateUserProfileUpdate, updateUserProfile);
+// Admin: list all users
+router.get("/", protect, admin, getAllUsers);
 
 module.exports = router;

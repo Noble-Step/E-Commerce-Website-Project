@@ -213,9 +213,25 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
+// @desc    Get all users (admin)
+// @route   GET /api/users
+// @access  Private/Admin
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}).select("-password");
+    res.json({ success: true, users });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
   updateUserProfile,
+  getAllUsers,
 };

@@ -82,6 +82,28 @@ export const UserProvider = ({ children }) => {
     }
   }, [token]);
 
+  // If the logged-in user is an admin, fetch all users from the API
+  useEffect(() => {
+    let cancelled = false;
+    const fetchAllUsers = async () => {
+      if (!token || !user || !user.isAdmin) return;
+      try {
+        const response = await API.get(`/users`);
+        const usersData = response.data?.users || response.data;
+        if (!cancelled && Array.isArray(usersData)) {
+          const normalized = usersData.map((u) => normalizeRegisteredUser(u));
+          setRegisteredUsers(normalized);
+        }
+      } catch (err) {
+        // ignore errors for now (e.g. not authorized)
+      }
+    };
+    fetchAllUsers();
+    return () => {
+      cancelled = true;
+    };
+  }, [token, user]);
+
   useEffect(() => {
     storage.set("registeredUsers", registeredUsers);
     if (!registryHydrated) {
