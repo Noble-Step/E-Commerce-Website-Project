@@ -38,7 +38,7 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const app = express();
 
 // ✅ Trust proxy for Vercel
-app.set('trust proxy', 1);
+app.set("trust proxy", 1);
 
 // Security middleware with Content Security Policy
 app.use(
@@ -67,11 +67,7 @@ app.use(
 // ✅ FIXED: Updated CORS to allow your Vercel frontend
 app.use(
   cors({
-    origin: [
-      "https://frontend-noble-step.vercel.app",
-      "http://localhost:3000",
-      process.env.FRONTEND_URL
-    ].filter(Boolean),
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
   })
 );
@@ -97,8 +93,8 @@ app.use(
 );
 
 // Rate limiter with proper proxy configuration
-const limiter = rateLimit({ 
-  windowMs: 15 * 60 * 1000, 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
@@ -111,10 +107,15 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Serve React build files in production
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/build")));
+}
+
 // Basic route for testing
-app.get("/", (req, res) => {
-  res.json({ message: "Welcome to Noble Step E-Commerce API" });
-});
+// app.get("/", (req, res) => {
+//   res.json({ message: "Welcome to Noble Step E-Commerce API" });
+// });
 
 // Mount API routes
 app.use("/api/users", userRoutes);
@@ -137,14 +138,21 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Endpoint not found",
-    path: req.originalUrl,
+// Serve React app in production (catch-all route - MUST be last!)
+if (process.env.NODE_ENV === "production") {
+  app.use((req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
   });
-});
+} else {
+  // 404 handler for development only
+  app.use((req, res) => {
+    res.status(404).json({
+      success: false,
+      message: "Endpoint not found",
+      path: req.originalUrl,
+    });
+  });
+}
 
 // ✅ CRITICAL FIX: Connect to database and handle Vercel serverless
 let isConnected = false;
@@ -163,36 +171,22 @@ const ensureDbConnection = async () => {
   }
 };
 
-// ✅ CRITICAL FIX: Only start server in development, export for Vercel
-if (process.env.NODE_ENV !== "production") {
-  const startServer = async () => {
-    try {
-      await connectDb();
-      const PORT = process.env.PORT || 5000;
-      app.listen(PORT, () => {
-        infoLogger(`🚀 Server is running on port ${PORT}`);
-        infoLogger(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
-      });
-    } catch (error) {
-      errorLogger("Failed to start server", error);
-      process.exit(1);
-    }
-  };
-  startServer();
-} else {
-  // For Vercel: Connect to DB on each request
-  app.use(async (req, res, next) => {
-    try {
-      await ensureDbConnection();
-      next();
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: "Database connection failed",
-      });
-    }
-  });
-}
+// Start Server
+const startServer = async () => {
+  try {
+    await connectDb();
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      infoLogger(`🚀 Server is running on port ${PORT}`);
+      infoLogger(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
+    });
+  } catch (error) {
+    errorLogger("Failed to start server", error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 // ✅ CRITICAL: Export for Vercel
-module.exports = app;
+// module.exports = app;

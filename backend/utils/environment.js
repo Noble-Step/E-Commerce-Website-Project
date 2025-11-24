@@ -37,13 +37,18 @@ const validateEnvironment = () => {
     );
   }
 
+  // ✅ FIX: Trim NODE_ENV to remove whitespace
+  const nodeEnv = process.env.NODE_ENV?.trim();
   const validEnvs = ["development", "production", "test"];
-  if (!validEnvs.includes(process.env.NODE_ENV)) {
+  if (!validEnvs.includes(nodeEnv)) {
     console.warn(
-      `⚠️  NODE_ENV should be one of: ${validEnvs.join(", ")}. Got: ${
-        process.env.NODE_ENV
-      }`
+      `⚠️  NODE_ENV should be one of: ${validEnvs.join(", ")}. Got: ${nodeEnv}`
     );
+  }
+
+  // ✅ FIX: Set trimmed NODE_ENV back
+  if (nodeEnv) {
+    process.env.NODE_ENV = nodeEnv;
   }
 
   return {
