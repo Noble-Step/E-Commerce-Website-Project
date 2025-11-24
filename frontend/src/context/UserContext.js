@@ -140,14 +140,17 @@ export const UserProvider = ({ children }) => {
     } catch (err) {
       // Extract validation errors if available
       const validationErrors = err.response?.data?.errors;
-      let errorMessage = err.response?.data?.message || err.message || "Registration failed";
-      
+      let errorMessage =
+        err.response?.data?.message || err.message || "Registration failed";
+
       // If there are validation errors, format them into a readable message
       if (Array.isArray(validationErrors) && validationErrors.length > 0) {
-        const errorMessages = validationErrors.map(e => e.message || `${e.field}: ${e.message}`).join(". ");
+        const errorMessages = validationErrors
+          .map((e) => e.message || `${e.field}: ${e.message}`)
+          .join(". ");
         errorMessage = errorMessages;
       }
-      
+
       setError(errorMessage);
       // Attach the error message to the error object so RegisterModal can access it
       err.message = errorMessage;
