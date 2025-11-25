@@ -6,14 +6,10 @@ const {
   getLast4Digits,
 } = require("../utils/paymentSimulator");
 
-// @desc    Create new order
-// @route   POST /api/orders
-// @access  Private
 const createOrder = async (req, res) => {
   try {
     const { shippingAddress, paymentDetails, items, total } = req.body;
 
-    // Get user's cart
     const cart = await Cart.findOne({ user: req.user._id }).populate(
       "items.product"
     );
@@ -25,7 +21,6 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Validate payment details
     if (!paymentDetails || !paymentDetails.method) {
       return res.status(400).json({
         success: false,
@@ -33,10 +28,8 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Simulate payment processing based on method
     const paymentResult = await simulatePayment(paymentDetails);
 
-    // If payment fails, return error without creating order
     if (!paymentResult.success) {
       return res.status(400).json({
         success: false,
@@ -45,16 +38,14 @@ const createOrder = async (req, res) => {
       });
     }
 
-    // Calculate prices
     const itemsPrice = cart.items.reduce(
       (acc, item) => acc + item.quantity * item.product.price,
       0
     );
-    const shippingPrice = 15; // Fixed shipping price
-    const taxPrice = itemsPrice * 0.08; // 8% tax
+    const shippingPrice = 15;
+    const taxPrice = itemsPrice * 0.08; 
     const totalPrice = itemsPrice + shippingPrice + taxPrice;
 
-    // Create order items array
     const orderItems = cart.items.map((item) => ({
       product: item.product._id,
       quantity: item.quantity,
@@ -62,7 +53,6 @@ const createOrder = async (req, res) => {
       size: item.size,
     }));
 
-    // Prepare payment details for storage based on payment method
     let orderPaymentDetails = {
       method: paymentDetails.method,
       status: paymentResult.status || "completed",
@@ -85,14 +75,9 @@ const createOrder = async (req, res) => {
         orderPaymentDetails.transactionId = paymentDetails.transactionId;
       }
     }
-    // Cash on Delivery: no additional fields needed
 
-    // Determine initial order status based on payment method
-    // Card and Digital Wallet: payment completed, order processing
-    // Bank Transfer and Cash on Delivery: payment pending, order processing
     const initialOrderStatus = "processing";
 
-    // Create order
     const order = await Order.create({
       user: req.user._id,
       items: orderItems,
@@ -105,7 +90,6 @@ const createOrder = async (req, res) => {
       status: initialOrderStatus,
     });
 
-    // Update product stock
     for (const item of cart.items) {
       const product = await Product.findById(item.product._id);
       if (product) {
@@ -114,7 +98,6 @@ const createOrder = async (req, res) => {
       }
     }
 
-    // Clear cart
     await Cart.findOneAndUpdate(
       { user: req.user._id },
       { $set: { items: [] } }
@@ -134,9 +117,6 @@ const createOrder = async (req, res) => {
   }
 };
 
-// @desc    Get order by ID
-// @route   GET /api/orders/:id
-// @access  Private
 const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
@@ -144,7 +124,6 @@ const getOrderById = async (req, res) => {
       .populate("items.product", "name images");
 
     if (order) {
-      // Check if the order belongs to the logged-in user or if user is admin
       if (
         order.user._id.toString() !== req.user._id.toString() &&
         !req.user.isAdmin
@@ -173,9 +152,6 @@ const getOrderById = async (req, res) => {
   }
 };
 
-// @desc    Get logged in user's orders
-// @route   GET /api/orders/myorders
-// @access  Private
 const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user._id })
@@ -194,9 +170,6 @@ const getMyOrders = async (req, res) => {
   }
 };
 
-// @desc    Update order status
-// @route   PUT /api/orders/:id/status
-// @access  Private/Admin
 const updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -227,9 +200,6 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-// @desc    Cancel an order (by owner or admin)
-// @route   PUT /api/orders/:id/cancel
-// @access  Private
 const cancelOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
@@ -240,7 +210,6 @@ const cancelOrder = async (req, res) => {
         .json({ success: false, message: "Order not found" });
     }
 
-    // Only order owner or admin can cancel
     if (
       order.user.toString() !== req.user._id.toString() &&
       !req.user.isAdmin
@@ -254,7 +223,6 @@ const cancelOrder = async (req, res) => {
     }
 
     const currentStatus = String(order.status || "").toLowerCase();
-    // Do not allow cancellation if already shipped or delivered or cancelled
     if (
       currentStatus === "shipped" ||
       currentStatus === "delivered" ||
@@ -268,7 +236,6 @@ const cancelOrder = async (req, res) => {
         });
     }
 
-    // Restore product stock for the cancelled items
     for (const item of order.items) {
       try {
         const product = await Product.findById(item.product);
@@ -277,7 +244,6 @@ const cancelOrder = async (req, res) => {
           await product.save();
         }
       } catch (err) {
-        // continue restoring other items even if one fails
       }
     }
 
@@ -290,9 +256,6 @@ const cancelOrder = async (req, res) => {
   }
 };
 
-// @desc    Get all orders
-// @route   GET /api/orders
-// @access  Private/Admin
 const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find({})

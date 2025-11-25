@@ -108,10 +108,8 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
     } catch (err) {
       const errorMessage = err.message || "";
       
-      // Check for validation errors from backend
       const validationErrors = err.response?.data?.errors;
       if (Array.isArray(validationErrors) && validationErrors.length > 0) {
-        // Map backend validation errors to form fields
         const fieldErrors = {};
         validationErrors.forEach((error) => {
           const field = error.field;
@@ -132,7 +130,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
         }
       }
       
-      // Handle other error types
       if (errorMessage.includes("email") || errorMessage.includes("exists") || errorMessage.includes("registered")) {
         setErrors({
           ...errors,
@@ -144,7 +141,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
           email: "Unable to connect to the server. Please check your internet connection and try again.",
         });
       } else {
-        // Show the actual error message from backend
         setErrors({
           ...errors,
           email: errorMessage || "Registration failed. Please try again or contact support if the problem persists.",
@@ -153,7 +149,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
     }
   };
 
-  // Reset fields when switching to Login
   const handleSwitchToLogin = useCallback(() => {
     setFName("");
     setLName("");
@@ -173,7 +168,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
       <div className="bg-black border-2 border-yellow-400 rounded-2xl shadow-2xl relative animate-fadeIn">
-        {/* Close Button */}
         <button
           onClick={handleClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
@@ -194,16 +188,13 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
           </svg>
         </button>
 
-        {/* Modal Content */}
         <div className="p-4 sm:p-6 md:p-8">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-center text-yellow-400">
             Register
           </h2>
 
           <div className="space-y-4">
-            {/* Name Fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* First Name */}
               <div>
                 <label htmlFor="register-fname" className="block text-sm font-medium text-yellow-400 mb-2">
                   First Name
@@ -230,7 +221,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
                 )}
               </div>
 
-              {/* Last Name */}
               <div>
                 <label htmlFor="register-lname" className="block text-sm font-medium text-yellow-400 mb-2">
                   Last Name
@@ -258,7 +248,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
               </div>
             </div>
 
-            {/* Email */}
             <div>
               <label htmlFor="register-email" className="block text-sm font-medium text-yellow-400 mb-2">
                 Email
@@ -296,7 +285,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
               )}
             </div>
 
-            {/* Password */}
             <div>
               <label htmlFor="register-password" className="block text-sm font-medium text-yellow-400 mb-2">
                 Password
@@ -334,7 +322,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
               )}
             </div>
 
-            {/* Confirm Password */}
             <div>
               <label htmlFor="register-confirm-password" className="block text-sm font-medium text-yellow-400 mb-2">
                 Confirm Password
@@ -374,7 +361,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
               )}
             </div>
 
-            {/* Create Account Button */}
             <button
               type="submit"
               onClick={handleSubmit}
@@ -384,7 +370,6 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin, onRegister }) => {
             </button>
           </div>
 
-          {/* Switch to Login */}
           <p className="text-sm text-center mt-6 text-gray-400">
             Already have an account?{" "}
             <button

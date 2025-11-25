@@ -68,7 +68,6 @@ const AboutPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
       <main className="max-w-7xl mx-auto px-4 md:px-10 py-8">
-        {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-bold uppercase mb-4">
             About Us
@@ -79,7 +78,6 @@ const AboutPage = () => {
           </p>
         </div>
 
-        {/* About Us Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           <div className="space-y-6">
             <h2 className="text-3xl font-bold text-yellow-400">About Noble Step</h2>
@@ -98,7 +96,6 @@ const AboutPage = () => {
           </div>
         </div>
 
-        {/* Mission & Vision Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
           <div className="bg-gray-900 rounded-2xl p-8">
             <h2 className="text-2xl font-bold text-yellow-400 mb-4">Our Mission</h2>
@@ -114,7 +111,6 @@ const AboutPage = () => {
           </div>
         </div>
 
-        {/* Values Section */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-12">Our Values</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -208,7 +204,6 @@ const AboutPage = () => {
           </div>
         </div>
 
-        {/* Stats Section */}
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-12 mb-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
@@ -234,7 +229,6 @@ const AboutPage = () => {
           </div>
         </div>
 
-        {/* Team Section */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-12">
             Meet Our Team
@@ -286,7 +280,6 @@ const AboutPage = () => {
           </div>
         </div>
 
-        {/* FAQs Section */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center mb-12">
             Frequently Asked Questions
@@ -321,7 +314,6 @@ const AboutPage = () => {
           </div>
         </div>
 
-        {/* Contact Us Section */}
         <div className="bg-gray-900 rounded-2xl p-12 mb-16">
           <h2 className="text-3xl font-bold text-center mb-12 text-yellow-400">
             Contact Us
@@ -373,7 +365,6 @@ const AboutPage = () => {
           </div>
         </div>
 
-        {/* CTA Section */}
         <div className="bg-yellow-400 text-black rounded-2xl p-12 text-center">
           <h2 className="text-3xl font-bold mb-4">
             Ready to Experience Premium Quality?

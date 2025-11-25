@@ -1,9 +1,7 @@
 const Cart = require("../models/cartModel");
 const Product = require("../models/productModel");
 
-// @desc    Get user's cart
-// @route   GET /api/cart
-// @access  Private
+
 const getCart = async (req, res) => {
   try {
     let cart = await Cart.findOne({ user: req.user._id }).populate(
@@ -30,14 +28,11 @@ const getCart = async (req, res) => {
   }
 };
 
-// @desc    Add item to cart
-// @route   POST /api/cart
-// @access  Private
+
 const addToCart = async (req, res) => {
   try {
     const { productId, quantity = 1, size } = req.body;
 
-    // Validate product
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({
@@ -46,7 +41,6 @@ const addToCart = async (req, res) => {
       });
     }
 
-    // Check stock
     if (product.stock < quantity) {
       return res.status(400).json({
         success: false,
@@ -63,16 +57,13 @@ const addToCart = async (req, res) => {
       });
     }
 
-    // Check if product already exists in cart
     const existingItemIndex = cart.items.findIndex(
       (item) => item.product.toString() === productId && item.size === size
     );
 
     if (existingItemIndex > -1) {
-      // Update quantity if product exists
       cart.items[existingItemIndex].quantity += quantity;
     } else {
-      // Add new item if product doesn't exist
       cart.items.push({
         product: productId,
         quantity,
@@ -82,7 +73,6 @@ const addToCart = async (req, res) => {
 
     await cart.save();
 
-    // Populate product details before sending response
     cart = await cart.populate("items.product", "name price images stock");
 
     res.status(200).json({
@@ -97,9 +87,6 @@ const addToCart = async (req, res) => {
   }
 };
 
-// @desc    Update cart item quantity
-// @route   PUT /api/cart/:itemId
-// @access  Private
 const updateCartItem = async (req, res) => {
   try {
     const { quantity } = req.body;
@@ -123,7 +110,6 @@ const updateCartItem = async (req, res) => {
       });
     }
 
-    // Check stock
     const product = await Product.findById(cartItem.product);
     if (product.stock < quantity) {
       return res.status(400).json({
@@ -152,9 +138,7 @@ const updateCartItem = async (req, res) => {
   }
 };
 
-// @desc    Remove item from cart
-// @route   DELETE /api/cart/:itemId
-// @access  Private
+
 const removeCartItem = async (req, res) => {
   try {
     const { itemId } = req.params;
@@ -187,9 +171,7 @@ const removeCartItem = async (req, res) => {
   }
 };
 
-// @desc    Clear cart
-// @route   DELETE /api/cart
-// @access  Private
+
 const clearCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ user: req.user._id });

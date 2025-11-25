@@ -20,14 +20,12 @@ const storage = {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (err) {
-      // ignore
     }
   },
   remove(key) {
     try {
       localStorage.removeItem(key);
     } catch (err) {
-      // ignore
     }
   },
 };
@@ -49,7 +47,6 @@ const normalizeRegisteredUser = (record = {}) => {
 
 const UserContext = createContext(null);
 
-// User Provider
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(() => storage.get("user", null));
   const [token, setToken] = useState(() => localStorage.getItem("token"));
@@ -82,7 +79,6 @@ export const UserProvider = ({ children }) => {
     }
   }, [token]);
 
-  // If the logged-in user is an admin, fetch all users from the API
   useEffect(() => {
     let cancelled = false;
     const fetchAllUsers = async () => {
@@ -95,7 +91,6 @@ export const UserProvider = ({ children }) => {
           setRegisteredUsers(normalized);
         }
       } catch (err) {
-        // ignore errors for now (e.g. not authorized)
       }
     };
     fetchAllUsers();
@@ -160,12 +155,10 @@ export const UserProvider = ({ children }) => {
       upsertRegisteredUser(returnedUser);
       return returnedUser;
     } catch (err) {
-      // Extract validation errors if available
       const validationErrors = err.response?.data?.errors;
       let errorMessage =
         err.response?.data?.message || err.message || "Registration failed";
 
-      // If there are validation errors, format them into a readable message
       if (Array.isArray(validationErrors) && validationErrors.length > 0) {
         const errorMessages = validationErrors
           .map((e) => e.message || `${e.field}: ${e.message}`)
@@ -174,7 +167,6 @@ export const UserProvider = ({ children }) => {
       }
 
       setError(errorMessage);
-      // Attach the error message to the error object so RegisterModal can access it
       err.message = errorMessage;
       throw err;
     } finally {
@@ -295,7 +287,6 @@ export const UserProvider = ({ children }) => {
   );
 };
 
-// User Hook
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {

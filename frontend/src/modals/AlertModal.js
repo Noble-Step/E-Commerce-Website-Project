@@ -123,7 +123,6 @@ const AlertModal = ({
       <div
         className={`bg-black border-2 ${config.borderColor} rounded-2xl shadow-2xl relative animate-fadeIn max-w-md w-full`}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white transition z-10"
@@ -143,24 +142,19 @@ const AlertModal = ({
           </svg>
         </button>
 
-        {/* Modal Content */}
         <div className="p-8 text-center">
-          {/* Icon */}
           <div
             className={`${config.bgColor} rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center`}
           >
             {config.icon}
           </div>
 
-          {/* Title */}
           <h2 className={`text-2xl font-bold mb-4 ${config.titleColor}`}>
             {title}
           </h2>
 
-          {/* Message */}
           <p className="text-gray-300 mb-8 leading-relaxed">{message}</p>
 
-          {/* Buttons */}
           <div className="flex gap-3 justify-center">
             {showCancel && (
               <button

@@ -101,7 +101,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
     setGeneralError("");
   }, [onClose]);
 
-  // Reset fields when switching to Register
   const handleSwitchToRegister = useCallback(() => {
     setEmail("");
     setPassword("");
@@ -113,7 +112,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
   return (
     <Modal isOpen={isOpen} onClose={handleClose}>
       <div className="bg-black border-2 border-yellow-400 rounded-2xl shadow-2xl relative animate-fadeIn">
-        {/* Close Button */}
         <button
           onClick={handleClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
@@ -134,14 +132,12 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
           </svg>
         </button>
 
-        {/* Modal Content */}
         <div className="p-4 sm:p-6 md:p-8">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-center text-yellow-400">
             Login
           </h2>
 
           <div className="space-y-4">
-            {/* Email */}
             <div>
               <label
                 htmlFor="login-email"
@@ -197,7 +193,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
               )}
             </div>
 
-            {/* Password */}
             <div>
               <label
                 htmlFor="login-password"
@@ -236,7 +231,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
               )}
             </div>
 
-            {/* General Error (e.g., invalid credentials) */}
             {generalError && (
               <p
                 className="text-red-500 text-sm text-center"
@@ -247,27 +241,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
               </p>
             )}
 
-            {/* Remember + Forgot */}
-            {/* <div className="flex items-center justify-between text-sm">
-              <label htmlFor="login-remember" className="flex items-center text-gray-400">
-                <input
-                  id="login-remember"
-                  type="checkbox"
-                  className="mr-2 accent-yellow-400"
-                  disabled={isLoading}
-                />
-                Remember me
-              </label>
-              <button
-                type="button"
-                className="text-yellow-400 hover:text-yellow-300 transition"
-                disabled={isLoading}
-              >
-                Forgot password?
-              </button>
-            </div> */}
-
-            {/* Login Button */}
             <button
               type="submit"
               onClick={handleSubmit}
@@ -278,7 +251,6 @@ const LoginModal = ({ isOpen, onClose, onSwitchToRegister, onLogin }) => {
             </button>
           </div>
 
-          {/* Switch to Register */}
           <p className="text-sm text-center mt-6 text-gray-400">
             Don't have an account?{" "}
             <button

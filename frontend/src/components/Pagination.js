@@ -1,10 +1,6 @@
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-/**
- * Pagination Component
- * Provides pagination controls for product lists
- */
 const Pagination = ({
   currentPage = 1,
   totalPages = 1,
@@ -62,7 +58,6 @@ const Pagination = ({
       </div>
       
       <ol className="flex items-center gap-2" role="list">
-        {/* Previous Button */}
         <li>
           <button
             onClick={() => onPageChange(currentPage - 1)}
@@ -75,7 +70,6 @@ const Pagination = ({
           </button>
         </li>
 
-        {/* Page Numbers */}
         {getPageNumbers().map((page, index) => {
           if (page === "ellipsis") {
             return (
@@ -105,7 +99,6 @@ const Pagination = ({
           );
         })}
 
-        {/* Next Button */}
         <li>
           <button
             onClick={() => onPageChange(currentPage + 1)}

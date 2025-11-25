@@ -1,9 +1,4 @@
-/**
- * Payment Simulator Utility
- * Simulates payment processing for development/testing purposes
- */
 
-// ...existing code...
 const simulatePayment = async (paymentDetails) => {
   const { method } = paymentDetails;
 
@@ -85,7 +80,6 @@ const simulatePayment = async (paymentDetails) => {
   };
 };
 
-// ...existing code...
 const generateTransactionId = (prefix = "TXN") => {
   const timestamp = Date.now();
   const random = Math.floor(Math.random() * 10000)
@@ -94,7 +88,6 @@ const generateTransactionId = (prefix = "TXN") => {
   return `${prefix}-${timestamp}-${random}`;
 };
 
-// ...existing code...
 const getLast4Digits = (cardNumber) => {
   const clean = cardNumber.replace(/\s+/g, "").replace(/-/g, "");
   return clean.slice(-4);

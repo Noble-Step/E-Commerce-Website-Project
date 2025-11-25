@@ -57,17 +57,15 @@ const productSchema = new mongoose.Schema({
   },
 });
 
-// Update the updatedAt timestamp before saving
 productSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-// Database indexes for performance
-productSchema.index({ name: "text" }); // Text index for search
-productSchema.index({ category: 1 }); // Index for category filtering
-productSchema.index({ price: 1 }); // Index for price sorting/filtering
-productSchema.index({ createdAt: -1 }); // Index for sorting by creation date
-productSchema.index({ category: 1, price: 1 }); // Compound index for category + price queries
+productSchema.index({ name: "text" }); 
+productSchema.index({ category: 1 }); 
+productSchema.index({ price: 1 }); 
+productSchema.index({ createdAt: -1 }); 
+productSchema.index({ category: 1, price: 1 });
 
 module.exports = mongoose.model("Product", productSchema);

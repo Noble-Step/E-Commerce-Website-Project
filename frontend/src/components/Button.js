@@ -1,9 +1,5 @@
 import React from "react";
 
-/**
- * Button Component
- * Provides reusable button styles for consistency across the app
- */
 const Button = ({
   variant = "primary",
   size = "md",

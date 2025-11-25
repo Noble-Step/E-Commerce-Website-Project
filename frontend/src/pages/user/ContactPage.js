@@ -85,7 +85,6 @@ const ContactPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
       <main className="max-w-7xl mx-auto px-4 md:px-10 py-8">
-        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold uppercase mb-4">
             Contact Us
@@ -97,7 +96,6 @@ const ContactPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-          {/* Contact Form */}
           <div className="lg:col-span-2">
             <div className="bg-gray-900 rounded-2xl p-6 md:p-8">
               <h2 className="text-2xl font-bold mb-6">Send us a Message</h2>
@@ -268,7 +266,6 @@ const ContactPage = () => {
             </div>
           </div>
 
-          {/* Contact Information */}
           <div className="space-y-6">
             <div className="bg-gray-900 rounded-2xl p-6">
               <h3 className="text-xl font-bold mb-6">Get in Touch</h3>
@@ -437,7 +434,6 @@ const ContactPage = () => {
           </div>
         </div>
 
-        {/* Map Placeholder */}
         <div className="bg-gray-900 rounded-2xl overflow-hidden h-96 flex items-center justify-center">
           <div className="text-center">
             <svg

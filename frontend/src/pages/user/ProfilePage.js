@@ -120,7 +120,6 @@ const ProfilePage = () => {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* --- Profile Sidebar --- */}
           <div className="lg:col-span-1">
             <div className="bg-gray-900 rounded-2xl p-6 text-center">
               <div className="w-32 h-32 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl font-bold text-black">
@@ -179,7 +178,6 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* --- Profile Details --- */}
           <div className="lg:col-span-2">
             <div className="bg-gray-900 rounded-2xl p-6 md:p-8">
               <div className="flex justify-between items-center mb-6">

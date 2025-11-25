@@ -1,10 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-/**
- * NavLink Component
- * Reusable navigation link with consistent styling
- */
 const NavLink = ({
   to,
   children,

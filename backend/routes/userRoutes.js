@@ -18,7 +18,6 @@ router.post("/register", validateUserRegistration, registerUser);
 router.post("/login", validateUserLogin, loginUser);
 router.get("/profile", protect, getUserProfile);
 router.put("/profile", protect, validateUserProfileUpdate, updateUserProfile);
-// Admin: list all users
 router.get("/", protect, admin, getAllUsers);
 
 module.exports = router;

@@ -6,15 +6,11 @@ const {
   clearProductByIdCache,
 } = require("../middleware/cacheMiddleware");
 
-// @desc    Get all products
-// @route   GET /api/products
-// @access  Public
 const getProducts = async (req, res) => {
   try {
     const { category, search, minPrice, maxPrice, sortBy, limit } = req.query;
     let query = {};
 
-    // Apply filters
     if (category) {
       query.category = category;
     }
@@ -27,7 +23,6 @@ const getProducts = async (req, res) => {
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    // Build sort object
     let sort = {};
     if (sortBy) {
       switch (sortBy) {
@@ -46,7 +41,6 @@ const getProducts = async (req, res) => {
       }
     }
 
-    // Build query with optional limit
     let productQuery = Product.find(query).sort(sort);
     if (limit) {
       const limitNum = parseInt(limit);
@@ -69,9 +63,6 @@ const getProducts = async (req, res) => {
   }
 };
 
-// @desc    Get single product
-// @route   GET /api/products/:id
-// @access  Public
 const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -94,20 +85,14 @@ const getProductById = async (req, res) => {
   }
 };
 
-// @desc    Create a product
-// @route   POST /api/products
-// @access  Private/Admin
 const createProduct = async (req, res) => {
   try {
-    // Get image paths from uploaded files
     let imagePaths = [];
     if (req.files && req.files.length > 0) {
       imagePaths = req.files.map((file) => {
-        // Return path that can be accessed via /uploads route (leading slash)
         return `/uploads/shoes/${file.filename}`;
       });
     } else if (req.body.images && Array.isArray(req.body.images)) {
-      // Fallback: if images are sent as URLs (for backward compatibility)
       imagePaths = req.body.images;
     }
 
@@ -134,7 +119,6 @@ const createProduct = async (req, res) => {
 
     const createdProduct = await product.save();
 
-    // Clear product list cache when new product is created
     clearProductCache();
 
     res.status(201).json({
@@ -142,7 +126,6 @@ const createProduct = async (req, res) => {
       product: createdProduct,
     });
   } catch (error) {
-    // Clean up uploaded files if product creation fails
     if (req.files && req.files.length > 0) {
       req.files.forEach((file) => {
         const filePath = path.join(
@@ -162,9 +145,6 @@ const createProduct = async (req, res) => {
   }
 };
 
-// @desc    Update a product
-// @route   PUT /api/products/:id
-// @access  Private/Admin
 const updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -176,7 +156,6 @@ const updateProduct = async (req, res) => {
       });
     }
 
-    // Handle new image uploads
     let newImagePaths = [];
     if (req.files && req.files.length > 0) {
       newImagePaths = req.files.map((file) => {
@@ -184,24 +163,20 @@ const updateProduct = async (req, res) => {
       });
     }
 
-    // Get existing images from body (if any are being kept)
     const existingImages = req.body.existingImages
       ? Array.isArray(req.body.existingImages)
         ? req.body.existingImages
         : JSON.parse(req.body.existingImages)
       : [];
 
-    // Combine existing and new images
     const allImages = [...existingImages, ...newImagePaths];
 
-    // Delete old images that are no longer in use
     if (req.body.removedImages) {
       const removedImages = Array.isArray(req.body.removedImages)
         ? req.body.removedImages
         : JSON.parse(req.body.removedImages);
 
       removedImages.forEach((imagePath) => {
-        // Only delete if it's a local file (starts with /uploads)
         if (
           typeof imagePath === "string" &&
           imagePath.startsWith("/uploads/")
@@ -215,7 +190,6 @@ const updateProduct = async (req, res) => {
       });
     }
 
-    // Update product fields
     product.name = req.body.name || product.name;
     product.description = req.body.description || product.description;
     product.price =
@@ -232,7 +206,6 @@ const updateProduct = async (req, res) => {
 
     const updatedProduct = await product.save();
 
-    // Clear cache for this specific product and product list
     clearProductByIdCache(req.params.id);
     clearProductCache();
 
@@ -248,18 +221,13 @@ const updateProduct = async (req, res) => {
   }
 };
 
-// @desc    Delete a product
-// @route   DELETE /api/products/:id
-// @access  Private/Admin
 const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
     if (product) {
-      // Delete associated image files
       if (product.images && product.images.length > 0) {
         product.images.forEach((imagePath) => {
-          // Only delete local files
           if (
             typeof imagePath === "string" &&
             imagePath.startsWith("/uploads/")
@@ -275,7 +243,6 @@ const deleteProduct = async (req, res) => {
 
       await product.deleteOne();
 
-      // Clear cache for this specific product and product list
       clearProductByIdCache(req.params.id);
       clearProductCache();
 

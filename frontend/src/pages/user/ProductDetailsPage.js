@@ -22,7 +22,6 @@ const ProductDetailsPage = () => {
   const { user } = useUser();
   const { openModal } = useModal();
 
-  // Use the id as-is (string), ProductContext already stringifies it
   const product = getProduct(id);
   const productName = product?.name || "Product";
 
@@ -44,15 +43,12 @@ const ProductDetailsPage = () => {
     }
   }, [product]);
 
-  // Initialize selected size from product.sizes when product loads
   useEffect(() => {
     if (product) {
       const sizes = Array.isArray(product.sizes) ? product.sizes : [];
       if (sizes.length > 0) {
-        // prefer existing selection if still available, otherwise pick first
         setSelectedSize((prev) => (sizes.includes(prev) ? prev : sizes[0]));
       } else {
-        // keep previous selection or reset to empty
         setSelectedSize((prev) => prev || "");
       }
     }
@@ -243,11 +239,8 @@ const ProductDetailsPage = () => {
   return (
     <>
       <div className="bg-black text-white min-h-screen px-4 sm:px-6 md:px-10 py-6 md:py-10">
-        {/* --- Layout --- */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10 lg:gap-16">
-          {/* --- Image Gallery (Left) --- */}
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* --- Thumbnails --- */}
             <div className="flex lg:flex-col flex-row gap-3 lg:w-24 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
               {Array.isArray(product.images) && product.images.length > 0 ? (
                 product.images.map((img, idx) => (
@@ -275,7 +268,6 @@ const ProductDetailsPage = () => {
               )}
             </div>
 
-            {/* --- Main Image --- */}
             <div className="flex-1 bg-gray-900 rounded-2xl overflow-hidden aspect-square lg:aspect-auto">
               <img
                 src={
@@ -290,13 +282,11 @@ const ProductDetailsPage = () => {
             </div>
           </div>
 
-          {/* --- Product Info (Right) --- */}
           <div className="space-y-4 md:space-y-6">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase tracking-wide">
               {productName}
             </h1>
 
-            {/* --- Rating --- */}
             <div
               className="flex items-center gap-2"
               aria-label={`Product rating: ${
@@ -326,7 +316,6 @@ const ProductDetailsPage = () => {
               </span>
             </div>
 
-            {/* --- Price --- */}
             <div className="text-3xl font-bold">${product.price}</div>
             <p
               className="text-gray-400 text-sm leading-relaxed"
@@ -335,7 +324,6 @@ const ProductDetailsPage = () => {
               }}
             ></p>
 
-            {/* --- Sizes --- */}
             <div>
               <h3 className="text-sm font-medium mb-3">Choose Size</h3>
               <div
@@ -360,7 +348,7 @@ const ProductDetailsPage = () => {
                         {size}
                       </button>
                     ))
-                  : // Fallback sizes if product.sizes is not provided
+                  :
                     ["Small", "Medium", "Large"].map((size) => (
                       <button
                         key={size}
@@ -380,7 +368,6 @@ const ProductDetailsPage = () => {
               </div>
             </div>
 
-            {/* --- Quantity & Add to Cart --- */}
             <div className="flex items-center gap-4">
               <div
                 className="flex items-center bg-gray-900 rounded-full"
@@ -421,7 +408,6 @@ const ProductDetailsPage = () => {
           </div>
         </div>
 
-        {/* --- Rating & Reviews Section --- */}
         <section className="mt-10 md:mt-16 border-t border-gray-800">
           <div className="py-8 space-y-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -455,7 +441,6 @@ const ProductDetailsPage = () => {
               </div>
             </div>
 
-            {/* --- Review Form --- */}
             <form
               onSubmit={handleReviewSubmit}
               className="space-y-4 bg-gray-900/40 p-4 md:p-6 rounded-2xl border border-gray-800"
@@ -539,7 +524,6 @@ const ProductDetailsPage = () => {
               </div>
             </form>
 
-            {/* --- Reviews List --- */}
             <div className="space-y-4">
               {reviewsLoading && (
                 <p className="text-gray-400 text-sm">Loading reviews...</p>

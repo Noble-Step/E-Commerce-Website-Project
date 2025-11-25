@@ -35,9 +35,7 @@ const ProductCard = ({
   const handleAddToCart = async (e) => {
     e.stopPropagation();
 
-    // Check user authentication first, regardless of whether onAddToCart callback is provided
     if (!user) {
-      // Build a product object for consistency
       const product = {
         _id: id,
         id,
@@ -52,11 +50,9 @@ const ProductCard = ({
       return;
     }
 
-    // Build a product object for consistency
-    // Use the provided id as both _id and id, and DO NOT use Date.now() here.
     const product = {
-      _id: id, // so CartContext can read product._id
-      id, // for any legacy code using id
+      _id: id,
+      id, 
       image,
       name,
       description,
@@ -64,8 +60,6 @@ const ProductCard = ({
       rating,
     };
 
-    // If parent (e.g. ShopPage) passes its own handler, call it with the product.
-    // This allows parent components to receive the product data if needed.
     if (onAddToCart) {
       onAddToCart(product);
       return;
@@ -76,7 +70,6 @@ const ProductCard = ({
       setAlertConfig(ALERT_TYPES.ADDED_TO_CART);
       setShowAlert(true);
     } catch (error) {
-      // Handle error - show error message to user
       setAlertConfig({
         title: "Error",
         message:
@@ -92,7 +85,6 @@ const ProductCard = ({
       onClick={onClick}
       className="bg-black border border-yellow-600 rounded-2xl shadow-lg overflow-hidden hover:shadow-[0_0_25px_rgba(255,215,0,0.4)] transition-all duration-300 w-full max-w-sm mx-auto cursor-pointer"
     >
-      {/* Product Image */}
       <div className="relative group">
         <img
           src={getImageUrl(image)}
@@ -112,20 +104,16 @@ const ProductCard = ({
         )}
       </div>
 
-      {/* Product Info */}
       <div className="p-5">
-        {/* Title */}
         <h3 className="text-lg font-semibold text-yellow-400 mb-2 line-clamp-2">
           {name}
         </h3>
 
-        {/* Description */}
         <p
           className="text-gray-300 text-sm mb-4 line-clamp-3"
           dangerouslySetInnerHTML={{ __html: sanitizeHtml(description) }}
         ></p>
 
-        {/* Rating */}
         {rating > 0 && (
           <div
             className="flex items-center mb-3"
@@ -151,7 +139,6 @@ const ProductCard = ({
           </div>
         )}
 
-        {/* Price + Add to Cart */}
         <div className="flex items-center justify-between">
           <span className="text-2xl font-bold text-yellow-400">
             {currency}
@@ -165,7 +152,6 @@ const ProductCard = ({
             Add to Cart
           </button>
         </div>
-        {/* Alert Modal - Only for success/error messages */}
         {alertConfig && (
           <AlertModal
             isOpen={showAlert}
@@ -175,7 +161,6 @@ const ProductCard = ({
         )}
       </div>
 
-      {/* Login Modal */}
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => {
@@ -190,7 +175,6 @@ const ProductCard = ({
           setShowLoginModal(false);
           if (pendingCartProduct) {
             try {
-              // If parent passes its own handler, call it with the product
               if (onAddToCart) {
                 onAddToCart(pendingCartProduct);
               } else {
@@ -226,7 +210,6 @@ const ProductCard = ({
           setShowRegisterModal(false);
           if (pendingCartProduct) {
             try {
-              // If parent passes its own handler, call it with the product
               if (onAddToCart) {
                 onAddToCart(pendingCartProduct);
               } else {

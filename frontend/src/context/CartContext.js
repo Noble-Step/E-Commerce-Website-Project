@@ -10,7 +10,6 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [cartTotal, setCartTotal] = useState(0);
 
-  // Load cart from backend when user logs in
   useEffect(() => {
     let mounted = true;
     const load = async () => {
@@ -23,14 +22,11 @@ export const CartProvider = ({ children }) => {
         const data = response.data;
         const cart = data.cart || data;
         if (!mounted) return;
-        // normalize items to match frontend shape
         const items = (cart.items || []).map((it) => {
-          // Extract product ID - handle both populated objects and string IDs
           const productId = typeof it.product === 'object' && it.product !== null
             ? (it.product._id || it.product.id || String(it.product))
             : (it.product || '');
           
-          // Extract item ID - prefer it._id, then product ID, fallback to empty string
           const itemId = it._id || productId || '';
           
           return {
@@ -77,12 +73,10 @@ export const CartProvider = ({ children }) => {
     const data = response.data;
     const cart = data.cart || data;
     const items = (cart.items || []).map((it) => {
-      // Extract product ID - handle both populated objects and string IDs
       const productId = typeof it.product === 'object' && it.product !== null
         ? (it.product._id || it.product.id || String(it.product))
         : (it.product || '');
       
-      // Extract item ID - prefer it._id, then product ID, fallback to empty string
       const itemId = it._id || productId || '';
       
       return {
@@ -112,12 +106,10 @@ export const CartProvider = ({ children }) => {
     const data = response.data;
     const cart = data.cart || data;
     const items = (cart.items || []).map((it) => {
-      // Extract product ID - handle both populated objects and string IDs
       const productId = typeof it.product === 'object' && it.product !== null
         ? (it.product._id || it.product.id || String(it.product))
         : (it.product || '');
       
-      // Extract item ID - prefer it._id, then product ID, fallback to empty string
       const itemId = it._id || productId || '';
       
       return {
@@ -159,7 +151,6 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-// Cart Hook
 export const useCart = () => {
   const context = useContext(CartContext);
   if (!context) {

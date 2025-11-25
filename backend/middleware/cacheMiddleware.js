@@ -1,10 +1,9 @@
 const NodeCache = require("node-cache");
 
-// Create cache instance with default TTL of 5 minutes
 const cache = new NodeCache({
-  stdTTL: 300, // 5 minutes default TTL
-  checkperiod: 60, // Check for expired keys every 60 seconds
-  useClones: false, // Don't clone objects for better performance
+  stdTTL: 300, 
+  checkperiod: 60, 
+  useClones: false, 
 });
 
 /**
@@ -14,7 +13,6 @@ const cache = new NodeCache({
  */
 const getCacheKey = (req) => {
   const baseKey = `${req.method}:${req.originalUrl}`;
-  // Include query parameters in cache key
   const queryString = Object.keys(req.query)
     .sort()
     .map((key) => `${key}=${req.query[key]}`)
@@ -29,7 +27,6 @@ const getCacheKey = (req) => {
  */
 const cacheMiddleware = (ttl = 300) => {
   return (req, res, next) => {
-    // Only cache GET requests
     if (req.method !== "GET") {
       return next();
     }
@@ -38,14 +35,11 @@ const cacheMiddleware = (ttl = 300) => {
     const cachedData = cache.get(key);
 
     if (cachedData) {
-      // Cache hit - return cached data
       return res.json(cachedData);
     }
 
-    // Cache miss - override res.json to cache the response
     const originalJson = res.json.bind(res);
     res.json = (data) => {
-      // Cache the response
       cache.set(key, data, ttl);
       return originalJson(data);
     };
@@ -54,9 +48,7 @@ const cacheMiddleware = (ttl = 300) => {
   };
 };
 
-/**
- * Clear all product-related cache entries
- */
+
 const clearProductCache = () => {
   const keys = cache.keys();
   const productKeys = keys.filter(
@@ -81,9 +73,7 @@ const clearProductByIdCache = (productId) => {
   }
 };
 
-/**
- * Clear all cache entries
- */
+
 const clearAllCache = () => {
   cache.flushAll();
 };
@@ -103,6 +93,6 @@ module.exports = {
   clearProductByIdCache,
   clearAllCache,
   getCacheStats,
-  cache, // Export cache instance for direct access if needed
+  cache, 
 };
 

@@ -59,15 +59,12 @@ const orderSchema = new mongoose.Schema({
       default: "pending",
     },
     transactionId: String,
-    // Card payment fields
     cardLast4: String,
     cardName: String,
-    // Digital wallet fields
-    walletType: String, // "paypal", "googlepay", "applepay"
+    walletType: String, 
     walletEmail: String,
-    // Bank transfer fields
     bankName: String,
-    accountLast4: String, // Store last 4 digits only for security
+    accountLast4: String, 
     routingNumber: String,
   },
   subtotal: {
@@ -102,16 +99,14 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
-// Update the updatedAt timestamp before saving
 orderSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-// Database indexes for performance
-orderSchema.index({ user: 1 }); // Index for user queries
-orderSchema.index({ createdAt: -1 }); // Index for sorting by creation date
-orderSchema.index({ status: 1 }); // Index for status filtering
-orderSchema.index({ user: 1, createdAt: -1 }); // Compound index for user orders sorted by date
+orderSchema.index({ user: 1 }); 
+orderSchema.index({ createdAt: -1 }); 
+orderSchema.index({ status: 1 }); 
+orderSchema.index({ user: 1, createdAt: -1 }); 
 
 module.exports = mongoose.model("Order", orderSchema);

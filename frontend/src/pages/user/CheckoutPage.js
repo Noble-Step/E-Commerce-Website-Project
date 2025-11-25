@@ -17,8 +17,8 @@ const CheckoutPage = () => {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [validationErrors, setValidationErrors] = useState([]);
-  const [paymentStatus, setPaymentStatus] = useState("idle"); // idle, processing, success, failed
-  const [paymentMethod, setPaymentMethod] = useState("card"); // card, digitalWallet, bankTransfer, cashOnDelivery
+  const [paymentStatus, setPaymentStatus] = useState("idle");
+  const [paymentMethod, setPaymentMethod] = useState("card");
   const [selectedPaymentTab, setSelectedPaymentTab] = useState(0);
   const [formData, setFormData] = useState({
     email: "",
@@ -29,15 +29,15 @@ const CheckoutPage = () => {
     state: "",
     zip: "",
     phone: "",
-    // Card fields
+
     cardNumber: "",
     cardName: "",
     expiry: "",
     cvv: "",
-    // Digital wallet fields
+
     walletType: "",
     walletEmail: "",
-    // Bank transfer fields
+
     bankName: "",
     accountNumber: "",
     routingNumber: "",
@@ -50,25 +50,21 @@ const CheckoutPage = () => {
       ...formData,
       [name]: value,
     });
-    // Clear errors when user starts typing
     if (error) {
       setError("");
     }
     if (validationErrors.length) {
       setValidationErrors([]);
     }
-    // Real-time validation for email
     if (name === "email" && value && !/\S+@\S+\.\S+/.test(value)) {
       setError("Please enter a valid email address");
     }
-    // Real-time validation for ZIP
     if (name === "zip" && value && !/^\d+$/.test(value)) {
       setError("Please enter a valid ZIP code (numbers only)");
     }
   };
 
   useEffect(() => {
-    // Do not auto-redirect to cart while a success modal is open
     if (cartItems.length === 0 && !showAlert) {
       navigate("/cart");
     }
@@ -119,18 +115,15 @@ const CheckoutPage = () => {
         );
         return false;
       }
-      // Validate email format
       if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
         setError("Please enter a valid email address");
         return false;
       }
-      // Validate ZIP code format (basic)
       if (formData.zip && !/^\d+$/.test(formData.zip)) {
         setError("Please enter a valid ZIP code (numbers only)");
         return false;
       }
     } else {
-      // Validate based on selected payment method
       const missing = [];
 
       if (paymentMethod === "card") {
@@ -139,7 +132,6 @@ const CheckoutPage = () => {
         if (!formData.expiry) missing.push("expiry date");
         if (!formData.cvv) missing.push("CVV");
 
-        // Validate card number format (basic)
         if (
           formData.cardNumber &&
           formData.cardNumber.replace(/\s+/g, "").length < 13
@@ -148,13 +140,11 @@ const CheckoutPage = () => {
           return false;
         }
 
-        // Validate expiry format (MM/YY)
         if (formData.expiry && !/^\d{2}\/\d{2}$/.test(formData.expiry)) {
           setError("Please enter expiry date in MM/YY format");
           return false;
         }
 
-        // Validate CVV format (3-4 digits)
         if (formData.cvv && !/^\d{3,4}$/.test(formData.cvv)) {
           setError("Please enter a valid CVV (3-4 digits)");
           return false;
@@ -163,7 +153,6 @@ const CheckoutPage = () => {
         if (!formData.walletType) missing.push("wallet type");
         if (!formData.walletEmail) missing.push("email address");
 
-        // Validate email format
         if (
           formData.walletEmail &&
           !/\S+@\S+\.\S+/.test(formData.walletEmail)
@@ -176,13 +165,11 @@ const CheckoutPage = () => {
         if (!formData.accountNumber) missing.push("account number");
         if (!formData.routingNumber) missing.push("routing number");
 
-        // Validate routing number format (9 digits)
         if (formData.routingNumber && !/^\d{9}$/.test(formData.routingNumber)) {
           setError("Routing number must be exactly 9 digits");
           return false;
         }
       }
-      // Cash on Delivery: no validation needed
 
       if (missing.length > 0) {
         setError(
@@ -202,13 +189,11 @@ const CheckoutPage = () => {
     if (step === 1) {
       setStep(2);
     } else {
-      // Set payment processing state
       setPaymentStatus("processing");
       setError("");
       setValidationErrors([]);
 
       try {
-        // Prepare shipping address
         const shippingAddress = {
           street: formData.address.trim(),
           city: formData.city.trim(),
@@ -228,7 +213,6 @@ const CheckoutPage = () => {
           phone: formData.phone.trim(),
         };
 
-        // Prepare payment details based on selected payment method
         let paymentDetails = {};
 
         if (paymentMethod === "card") {
@@ -259,7 +243,6 @@ const CheckoutPage = () => {
           };
         }
 
-        // Create order with payment simulation
         const order = await createOrder({
           items: cartItems,
           total: orderTotal,
@@ -268,12 +251,10 @@ const CheckoutPage = () => {
           shipping,
         });
 
-        // Payment successful - show success modal first, clear cart after user confirms
         setPaymentStatus("success");
         setAlertConfig(ALERT_TYPES.ORDER_SUCCESS);
         setShowAlert(true);
       } catch (err) {
-        // Payment failed or order creation failed
         setPaymentStatus("failed");
         const errorMessage =
           err.response?.data?.message ||
@@ -286,18 +267,16 @@ const CheckoutPage = () => {
   };
 
   const shippingCost = 15.0;
-  const tax = cartTotal * 0.08; // 8% tax
+  const tax = cartTotal * 0.08;
   const orderTotal = cartTotal + shippingCost + tax;
 
   const [showAlert, setShowAlert] = useState(false);
   const [alertConfig, setAlertConfig] = useState(null);
 
   const handleAlertConfirm = async () => {
-    // Clear cart now that the user has seen the success modal
     try {
       await clearCart();
     } catch (err) {
-      // ignore errors clearing cart
     }
     setShowAlert(false);
     navigate("/orders");
@@ -306,14 +285,12 @@ const CheckoutPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
       <main className="max-w-7xl mx-auto px-4 md:px-10 py-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold uppercase mb-2">
             Checkout
           </h1>
         </div>
 
-        {/* Progress Steps */}
         <nav aria-label="Checkout progress" className="mb-8">
           <ol className="flex items-center justify-center gap-4" role="list">
             <li
@@ -358,7 +335,6 @@ const CheckoutPage = () => {
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Form Section */}
           <div className="lg:col-span-2">
             <div className="bg-gray-900 rounded-2xl p-6 md:p-8">
               {step === 1 ? (
@@ -528,7 +504,6 @@ const CheckoutPage = () => {
                     Payment Information
                   </h2>
 
-                  {/* Payment Method Tabs */}
                   <div
                     className="mb-6"
                     role="tablist"
@@ -624,9 +599,7 @@ const CheckoutPage = () => {
                     </div>
                   </div>
 
-                  {/* Payment Forms */}
                   <div className="space-y-4">
-                    {/* Tab 1: Credit/Debit Card */}
                     {selectedPaymentTab === 0 && (
                       <div
                         role="tabpanel"
@@ -740,7 +713,6 @@ const CheckoutPage = () => {
                       </div>
                     )}
 
-                    {/* Tab 2: Digital Wallets */}
                     {selectedPaymentTab === 1 && (
                       <div
                         role="tabpanel"
@@ -792,7 +764,6 @@ const CheckoutPage = () => {
                       </div>
                     )}
 
-                    {/* Tab 3: Bank Transfer */}
                     {selectedPaymentTab === 2 && (
                       <div
                         role="tabpanel"
@@ -879,7 +850,6 @@ const CheckoutPage = () => {
                       </div>
                     )}
 
-                    {/* Tab 4: Cash on Delivery */}
                     {selectedPaymentTab === 3 && (
                       <div
                         role="tabpanel"
@@ -914,7 +884,6 @@ const CheckoutPage = () => {
             </div>
           </div>
 
-          {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-gray-900 rounded-2xl p-6 sticky top-8">
               <h2 className="text-xl font-bold mb-6">Order Summary</h2>
@@ -1037,7 +1006,6 @@ const CheckoutPage = () => {
           </div>
         </div>
       </main>
-      {/* Alert Modal */}
       {alertConfig && (
         <AlertModal
           isOpen={showAlert}

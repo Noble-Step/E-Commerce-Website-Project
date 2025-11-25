@@ -40,20 +40,17 @@ export const getImageUrl = (imagePath) => {
     return "https://via.placeholder.com/300x300";
   }
 
-  // If already a full URL, return as is
   if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
     return imagePath;
   }
 
-  // In production (Render), frontend and backend are on same server
   if (process.env.NODE_ENV === "production") {
     const normalizedPath = imagePath.startsWith("/")
       ? imagePath
       : `/${imagePath}`;
-    return normalizedPath; // Just return the path, browser will use same domain
+    return normalizedPath; 
   }
 
-  // In development, use the API URL
   const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
   const baseUrl = API_URL.replace(/\/api$/, "");
 

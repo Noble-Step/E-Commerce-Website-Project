@@ -28,7 +28,6 @@ router
   .route("/:id/status")
   .put(protect, admin, validateOrderId, updateOrderStatus);
 
-// Allow users (or admin) to cancel their order before it's shipped/delivered
 router.route("/:id/cancel").put(protect, validateOrderId, cancelOrder);
 
 module.exports = router;

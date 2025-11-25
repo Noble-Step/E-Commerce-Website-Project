@@ -37,7 +37,6 @@ const validateEnvironment = () => {
     );
   }
 
-  // ✅ FIX: Trim NODE_ENV to remove whitespace
   const nodeEnv = process.env.NODE_ENV?.trim();
   const validEnvs = ["development", "production", "test"];
   if (!validEnvs.includes(nodeEnv)) {
@@ -46,7 +45,6 @@ const validateEnvironment = () => {
     );
   }
 
-  // ✅ FIX: Set trimmed NODE_ENV back
   if (nodeEnv) {
     process.env.NODE_ENV = nodeEnv;
   }

@@ -19,12 +19,12 @@ const { cacheMiddleware } = require("../middleware/cacheMiddleware");
 
 router
   .route("/")
-  .get(validateProductQuery, cacheMiddleware(300), getProducts) // Cache for 5 minutes
+  .get(validateProductQuery, cacheMiddleware(300), getProducts) 
   .post(protect, admin, handleUpload, validateProductCreation, createProduct);
 
 router
   .route("/:id")
-  .get(validateProductId, cacheMiddleware(600), getProductById) // Cache for 10 minutes
+  .get(validateProductId, cacheMiddleware(600), getProductById) 
   .put(
     protect,
     admin,

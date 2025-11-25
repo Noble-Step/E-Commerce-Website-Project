@@ -15,7 +15,6 @@ export default function Footer() {
     <footer className="bg-black text-white border-t border-yellow-600/20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-6 md:pb-10 border-t border-yellow-600/20">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 sm:gap-8 md:gap-10 py-6 md:py-10">
-          {/* Logo and Description */}
           <div>
             <h2 className="text-yellow-500 font-semibold text-xl mb-3">
               Noble Step
@@ -55,7 +54,6 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Company */}
           <div>
             <h3 className="font-semibold text-sm mb-4 text-gray-200">
               COMPANY
@@ -97,7 +95,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Help */}
           <div>
             <h3 className="font-semibold text-sm mb-4 text-gray-200">HELP</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
@@ -154,7 +151,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* FAQ */}
           <div>
             <h3 className="font-semibold text-sm mb-4 text-gray-200">FAQ</h3>
             <ul className="space-y-2 text-gray-400 text-sm">
@@ -211,7 +207,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Resources */}
           <div>
             <h3 className="font-semibold text-sm mb-4 text-gray-200">
               RESOURCES
@@ -279,7 +274,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="flex flex-col md:flex-row justify-between items-center border-t border-yellow-600/20 pt-4 md:pt-6 text-gray-400 text-xs sm:text-sm gap-4 md:gap-0">
           <p className="text-center md:text-left">Noble Step © 2025, All rights reserved</p>
           <div className="flex flex-wrap gap-2 sm:gap-3 justify-center md:justify-end">
@@ -294,7 +288,6 @@ export default function Footer() {
             </button>
           </div>
         </div>
-        {/* Alert Modal */}
         {alertConfig && (
           <AlertModal
             isOpen={showAlert}

@@ -288,11 +288,9 @@ const UsersPage = () => {
           <h1 className="text-xl lg:text-2xl font-bold text-white">Users</h1>
         </div>
 
-        {/* Users Table */}
         {renderTable()}
       </div>
 
-      {/* Edit User Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 rounded-xl lg:rounded-2xl p-4 lg:p-6 w-full max-w-md">
@@ -374,7 +372,6 @@ const UsersPage = () => {
         </div>
       )}
 
-      {/* Alert Modal */}
       {alertConfig && (
         <AlertModal
           isOpen={showAlert}

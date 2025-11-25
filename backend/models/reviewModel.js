@@ -41,13 +41,11 @@ const reviewSchema = new mongoose.Schema({
   },
 });
 
-// Update the updatedAt timestamp before saving
 reviewSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
-// After saving a review, update the product's average rating
 reviewSchema.post("save", async function () {
   const Review = this.constructor;
   const Product = mongoose.model("Product");

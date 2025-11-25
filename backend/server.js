@@ -22,13 +22,11 @@ try {
 } catch (error) {
   console.error("❌ Environment validation failed:");
   console.error(error.message);
-  // Don't exit in production (Vercel serverless)
   if (process.env.NODE_ENV !== "production") {
     process.exit(1);
   }
 }
 
-// Import routes
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoutes");
@@ -37,10 +35,8 @@ const reviewRoutes = require("./routes/reviewRoutes");
 
 const app = express();
 
-// ✅ Trust proxy for Vercel
 app.set("trust proxy", 1);
 
-// Security middleware with Content Security Policy
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -64,7 +60,6 @@ app.use(
   })
 );
 
-// ✅ FIXED: Updated CORS to allow your Vercel frontend
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
@@ -72,14 +67,11 @@ app.use(
   })
 );
 
-// ✅ Disable file logging for Vercel (serverless is read-only)
-// app.use(httpLogger); // Commented out - use console.log or cloud logging instead
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
 });
 
-// Compression middleware
 app.use(
   compression({
     level: 6,
@@ -92,7 +84,6 @@ app.use(
   })
 );
 
-// Rate limiter with proper proxy configuration
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
@@ -104,27 +95,18 @@ app.use("/api", limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Serve React build files in production
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/build")));
 }
 
-// Basic route for testing
-// app.get("/", (req, res) => {
-//   res.json({ message: "Welcome to Noble Step E-Commerce API" });
-// });
-
-// Mount API routes
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reviews", reviewRoutes);
 
-// Basic error handling middleware
 app.use((err, req, res, next) => {
   errorLogger(`Unhandled error on ${req.method} ${req.originalUrl}`, err);
   console.error(err.stack);
@@ -138,13 +120,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Serve React app in production (catch-all route - MUST be last!)
 if (process.env.NODE_ENV === "production") {
   app.use((req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
   });
 } else {
-  // 404 handler for development only
   app.use((req, res) => {
     res.status(404).json({
       success: false,
@@ -154,7 +134,6 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-// ✅ CRITICAL FIX: Connect to database and handle Vercel serverless
 let isConnected = false;
 
 const ensureDbConnection = async () => {
@@ -171,7 +150,6 @@ const ensureDbConnection = async () => {
   }
 };
 
-// Start Server
 const startServer = async () => {
   try {
     await connectDb();
@@ -188,5 +166,3 @@ const startServer = async () => {
 
 startServer();
 
-// ✅ CRITICAL: Export for Vercel
-// module.exports = app;

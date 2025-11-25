@@ -17,7 +17,6 @@ const OrdersPage = () => {
   const { user } = useUser();
   const navigate = useNavigate();
 
-  // Filter orders to only show the current user's orders
   const currentUserId = user?._id || user?.id;
   const filteredOrders = [...orders, ...orderHistory].filter((order) => {
     if (!currentUserId) return false;
@@ -70,7 +69,6 @@ const OrdersPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
       <main className="max-w-7xl mx-auto px-4 md:px-10 py-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold uppercase mb-2">
             My Orders
@@ -140,7 +138,6 @@ const OrdersPage = () => {
                   key={order.id}
                   className="bg-gray-900 rounded-2xl overflow-hidden"
                 >
-                  {/* Order Header */}
                   <div className="p-6 border-b border-gray-800">
                     <div className="flex flex-wrap justify-between items-start gap-4">
                       <div>
@@ -204,7 +201,6 @@ const OrdersPage = () => {
                     </div>
                   </div>
 
-                  {/* Order Items - Collapsible */}
                   {selectedOrder === order.id && (
                     <div className="p-6 space-y-4">
                       {order.items.map((item, idx) => {
@@ -286,7 +282,6 @@ const OrdersPage = () => {
                                       "Your order has been cancelled. If you paid, a refund will be processed according to your payment method.",
                                   });
                                   setShowAlert(true);
-                                  // Refresh orders from server
                                   if (syncOrders) await syncOrders();
                                 } catch (err) {
                                   console.error("Cancel order failed:", err);
@@ -318,7 +313,6 @@ const OrdersPage = () => {
                         <button
                           onClick={async () => {
                             try {
-                              // Process all items sequentially to avoid race conditions
                               for (const i of order.items) {
                                 const product = {
                                   _id:
@@ -344,8 +338,6 @@ const OrdersPage = () => {
                                 "Failed to add products to cart:",
                                 error
                               );
-                              // Error handling can be added here (e.g., show error toast)
-                              // Still navigate to cart to show partial results
                               navigate("/cart");
                             }
                           }}
@@ -364,7 +356,6 @@ const OrdersPage = () => {
                     </div>
                   )}
 
-                  {/* Quick Summary when Collapsed */}
                   {selectedOrder !== order.id && (
                     <div className="p-6 pt-0">
                       <div className="flex items-center justify-between">
@@ -384,7 +375,6 @@ const OrdersPage = () => {
           </div>
         )}
       </main>
-      {/* Alert Modal */}
       {alertConfig && (
         <AlertModal
           isOpen={showAlert}

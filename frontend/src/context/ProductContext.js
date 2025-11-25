@@ -18,7 +18,6 @@ const loadProductsFromStorage = () => {
       return JSON.parse(raw);
     }
   } catch (err) {
-    // ignore
   }
   return [];
 };
@@ -27,11 +26,9 @@ const persistProducts = (items) => {
   try {
     localStorage.setItem(storageKey, JSON.stringify(items));
   } catch (err) {
-    // ignore
   }
 };
 
-// Product Provider
 export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState(() => loadProductsFromStorage());
   const [categories, setCategories] = useState(() =>
@@ -185,7 +182,6 @@ export const ProductProvider = ({ children }) => {
   );
 };
 
-// Product Hook
 export const useProducts = () => {
   const context = useContext(ProductContext);
   if (!context) {

@@ -151,7 +151,6 @@ const OrdersListPage = () => {
           key={orderId}
           className="bg-gray-900 rounded-xl lg:rounded-2xl overflow-hidden"
         >
-          {/* Order Header */}
           <div className="p-4 lg:p-6 flex flex-col sm:flex-row gap-3 sm:gap-4 items-start justify-between border-b border-gray-800">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 lg:gap-3 mb-2 flex-wrap">
@@ -196,13 +195,11 @@ const OrdersListPage = () => {
             </div>
           </div>
 
-          {/* Order Details */}
           {isExpanded && (
             <div
               id={`order-${orderId}`}
               className="p-4 lg:p-6 space-y-4 lg:space-y-6"
             >
-              {/* Customer Details */}
               <div>
                 <h4 className="font-semibold text-white mb-3 text-sm lg:text-base">
                   Customer Details
@@ -221,7 +218,6 @@ const OrdersListPage = () => {
                 </div>
               </div>
 
-              {/* Order Items */}
               <div>
                 <h4 className="font-semibold text-white mb-3 text-sm lg:text-base">
                   Order Items
@@ -263,7 +259,6 @@ const OrdersListPage = () => {
                 </div>
               </div>
 
-              {/* Order Actions */}
               <div className="border-t border-gray-800 pt-4 lg:pt-6">
                 <h4 className="font-semibold text-white mb-3 text-sm lg:text-base">
                   Update Status
@@ -348,11 +343,9 @@ const OrdersListPage = () => {
           </div>
         )}
 
-        {/* Orders List */}
         <div className="space-y-3 lg:space-y-4">{renderOrdersList()}</div>
       </div>
 
-      {/* Alert Modal */}
       {alertConfig && (
         <AlertModal
           isOpen={showAlert}

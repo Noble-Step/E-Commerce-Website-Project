@@ -50,7 +50,6 @@ export const ThemeProvider = ({ children }) => {
   );
 };
 
-// Theme Hook
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) {

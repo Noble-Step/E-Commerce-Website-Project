@@ -1,9 +1,5 @@
 import React from "react";
 
-/**
- * Rating Component
- * Displays star ratings consistently across the app
- */
 const Rating = ({ rating = 5, count = 5, className = "" }) => {
   return (
     <div className={`flex text-yellow-400 ${className}`}>

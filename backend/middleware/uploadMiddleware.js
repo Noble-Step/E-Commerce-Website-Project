@@ -2,26 +2,22 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, "../uploads/shoes");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Configure storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
-    // Use original filename without modification to preserve image names
     const ext = path.extname(file.originalname);
     const name = path.basename(file.originalname, ext).replace(/\s+/g, "-");
     cb(null, `${name}${ext}`);
   },
 });
 
-// File filter - only images
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg|png|gif|webp/;
   const extname = allowedTypes.test(
@@ -39,19 +35,16 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Configure multer
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024,
   },
   fileFilter: fileFilter,
 });
 
-// Middleware for multiple images
-const uploadMultiple = upload.array("images", 10); // Max 10 images
+const uploadMultiple = upload.array("images", 10); 
 
-// Middleware wrapper to handle errors
 const handleUpload = (req, res, next) => {
   uploadMultiple(req, res, (err) => {
     if (err instanceof multer.MulterError) {

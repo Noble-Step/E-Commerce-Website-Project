@@ -19,14 +19,13 @@ const CartPage = () => {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const discount = subtotal * 0.1; // 10% discount
+  const discount = subtotal * 0.1; 
   const deliveryFee = 15;
   const total = subtotal - discount + deliveryFee;
 
   return (
     <div className="bg-black text-white min-h-screen">
       <main className="max-w-7xl mx-auto px-4 md:px-10 py-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold uppercase mb-2">
             Your Cart
@@ -63,7 +62,6 @@ const CartPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-            {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => {
                 const itemName = item.name || item.product?.name || "Product";
@@ -162,7 +160,6 @@ const CartPage = () => {
               })}
             </div>
 
-            {/* Order Summary */}
             <div className="lg:col-span-1">
               <div className="bg-gray-900 rounded-2xl p-4 sm:p-6 sticky top-8">
                 <h2 className="text-xl font-bold mb-6">Order Summary</h2>

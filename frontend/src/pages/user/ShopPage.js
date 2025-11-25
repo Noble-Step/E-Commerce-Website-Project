@@ -30,7 +30,6 @@ const ShopPage = () => {
       await addToCart(product, 1);
     } catch (error) {
       console.error("Failed to add product to cart:", error);
-      // Error handling can be added here (e.g., show error toast)
     }
   };
   const [priceRange, setPriceRange] = useState([40, 1000]);
@@ -60,7 +59,6 @@ const ShopPage = () => {
   ];
   const sizes = ["XS", "S", "M", "L", "XL"];
 
-  // Sync searchTerm with URL search param
   useEffect(() => {
     const urlSearch = searchParams.get("search");
     if (urlSearch !== null && urlSearch !== searchTerm) {
@@ -68,16 +66,13 @@ const ShopPage = () => {
     }
   }, [searchParams, searchTerm]);
 
-  // Sync category from URL parameter
   useEffect(() => {
     const urlCategory = searchParams.get("category");
     if (urlCategory) {
-      // Find matching category case-insensitively
       const matchingCategory = categories.find(
         (cat) => cat.trim().toLowerCase() === urlCategory.trim().toLowerCase()
       );
       if (matchingCategory) {
-        // Only update if the category from URL is not already selected
         setSelectedCategories((prev) => {
           if (!prev.includes(matchingCategory)) {
             return [matchingCategory];
@@ -121,12 +116,10 @@ const ShopPage = () => {
     const normalizedName = (product.name || "").toLowerCase();
     const matchesSearch = normalizedName.includes(searchTerm.toLowerCase());
 
-    // Price filter with null check
     const productPrice = product.price ?? 0;
     const matchesPrice =
       productPrice >= priceRange[0] && productPrice <= priceRange[1];
 
-    // Rating filter - use ratings.average if available, fallback to rating
     const productRating = product.ratings?.average ?? product.rating ?? 0;
     const matchesRating =
       selectedRatings.length === 0 ||
@@ -134,7 +127,6 @@ const ShopPage = () => {
         sr === "5★ Stars" ? productRating === 5 : productRating >= 4
       );
 
-    // Category filter with case-insensitive comparison and trim whitespace
     const productCategory = product.category ? product.category.trim() : "";
     const matchesCategory =
       selectedCategories.length === 0 ||
@@ -144,7 +136,6 @@ const ShopPage = () => {
             selectedCat.trim().toLowerCase() === productCategory.toLowerCase()
         ));
 
-    // Size filter with null check - handle both single size and sizes array
     const productSizes = product.sizes || (product.size ? [product.size] : []);
     const matchesSize =
       selectedSizes.length === 0 ||
@@ -161,13 +152,11 @@ const ShopPage = () => {
     );
   });
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
-  // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [
@@ -184,13 +173,11 @@ const ShopPage = () => {
     )
     .slice(0, 5);
 
-  // Add state for mobile filter drawer
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   return (
     <div className="bg-black text-white flex flex-col min-h-screen">
       <main className="min-h-screen bg-black text-white flex flex-col lg:flex-row gap-6 md:gap-10 px-4 sm:px-6 md:px-10 py-8 md:py-12">
-        {/* Mobile Filter Toggle Button */}
         <button
           onClick={() => setIsFilterOpen(!isFilterOpen)}
           className="lg:hidden fixed bottom-6 right-6 z-40 bg-yellow-400 text-black px-4 py-3 rounded-full font-semibold shadow-lg hover:bg-yellow-500 transition flex items-center gap-2"
@@ -212,7 +199,6 @@ const ShopPage = () => {
           Filters
         </button>
 
-        {/* Mobile Filter Overlay */}
         {isFilterOpen && (
           <div
             className="lg:hidden fixed inset-0 bg-black bg-opacity-75 z-50"
@@ -220,7 +206,6 @@ const ShopPage = () => {
           />
         )}
 
-        {/* Filters Sidebar - all filters shown together, no categories */}
         <aside
           className={`${
             isFilterOpen
@@ -240,7 +225,6 @@ const ShopPage = () => {
             </button>
           </div>
 
-          {/* --- Price Range (as input fields) --- */}
           <div>
             <h4 className="text-sm font-medium text-gray-300 mb-2">
               Price Range
@@ -286,7 +270,6 @@ const ShopPage = () => {
             </div>
           </div>
 
-          {/* --- Rating --- */}
           <div>
             <h4 className="text-sm font-medium text-gray-300 mb-2">Rating</h4>
             <div className="flex flex-row gap-6">
@@ -308,7 +291,6 @@ const ShopPage = () => {
               </div>
           </div>
 
-          {/* --- Category --- */}
           <div>
             <h4 className="text-sm font-medium text-gray-300 mb-2">Category</h4>
             <div className="flex flex-col gap-2">
@@ -329,7 +311,6 @@ const ShopPage = () => {
             </div>
           </div>
 
-          {/* --- Size --- */}
           <div>
             <h4 className="text-sm font-medium text-gray-300 mb-2">
               Size (US)
@@ -354,9 +335,7 @@ const ShopPage = () => {
           </div>
         </aside>
 
-        {/* Products Section */}
         <section className="flex-1 flex flex-col gap-6 md:gap-8 relative">
-          {/* Search Bar - make it responsive */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 md:mb-6">
             <div className="relative w-full sm:max-w-md">
               <label htmlFor="shop-search" className="sr-only">
@@ -417,7 +396,6 @@ const ShopPage = () => {
                 aria-hidden="true"
               />
 
-              {/* --- Suggestions Dropdown --- */}
               {showSuggestions && suggestions.length > 0 && (
                 <ul
                   id="search-suggestions"
@@ -448,7 +426,6 @@ const ShopPage = () => {
                 </ul>
               )}
 
-              {/* --- No Results --- */}
               {showSuggestions && suggestions.length === 0 && searchTerm && (
                 <p className="absolute mt-2 w-full bg-[#0f0f0f] border border-yellow-700 rounded-xl px-4 py-2 text-gray-400 text-sm">
                   No matches found.
@@ -469,7 +446,6 @@ const ShopPage = () => {
             </div>
           </div>
 
-          {/* Product Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {loading ? (
               <>
@@ -524,7 +500,6 @@ const ShopPage = () => {
             )}
           </div>
 
-          {/* Pagination */}
           {!loading && filteredProducts.length > 0 && (
             <Pagination
               currentPage={currentPage}
@@ -537,7 +512,6 @@ const ShopPage = () => {
         </section>
       </main>
 
-      {/* --- Login Modal --- */}
       <LoginModal
         isOpen={showLoginModal}
         onClose={() => {
@@ -554,7 +528,6 @@ const ShopPage = () => {
                 "Failed to add product to cart after login:",
                 error
               );
-              // Error handling can be added here (e.g., show error toast)
             }
             setPendingCartProduct(null);
           }

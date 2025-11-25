@@ -123,9 +123,7 @@ export default function Home() {
 
   return (
     <div className="bg-black text-white flex flex-col min-h-screen">
-      {/* Hero Section */}
       <main className="flex flex-col md:flex-row justify-between items-center px-4 sm:px-6 md:px-10 lg:px-20 py-10 md:py-20 flex-1">
-        {/* Left side */}
         <div className="max-w-xl space-y-4 md:space-y-6 text-center md:text-left mb-8 md:mb-0">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
             FIND SHOES THAT MATCHES YOUR STYLE
@@ -170,7 +168,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right side */}
         <div className="relative mt-4 md:mt-0 w-full md:w-auto flex justify-center">
           <img
             src={shoeImage}
@@ -184,7 +181,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Top Selling Section */}
       <section className="px-4 sm:px-6 md:px-10 lg:px-20 py-10 md:py-16 text-center">
         <h2 className="text-xl sm:text-2xl font-semibold mb-6 md:mb-10 text-yellow-500">
           TOP SELLING
@@ -243,7 +239,6 @@ export default function Home() {
         )}
       </section>
 
-      {/* Customer Testimonials */}
       <section className="px-4 sm:px-6 md:px-10 lg:px-20 pb-10 md:pb-20 text-center">
         <h2 className="text-xl sm:text-2xl font-semibold mb-6 md:mb-10 text-yellow-500">
           OUR HAPPY CUSTOMERS
@@ -312,14 +307,12 @@ export default function Home() {
         )}
       </section>
 
-      {/* Browse Section */}
       <section className="flex flex-col items-center py-8 md:py-12 px-4 sm:px-6 md:px-20">
         <h2 className="w-full text-xl sm:text-2xl md:text-3xl font-semibold tracking-wide bg-gradient-to-r from-gray-200 to-gray-400 text-transparent bg-clip-text uppercase mb-6 md:mb-8 border border-gray-600 rounded-full px-4 sm:px-6 md:px-8 py-2 md:py-3 text-center">
           Browse by Shoe Styles
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full">
-          {/* Loafers */}
           <div
             onClick={() => navigate("/shop?category=Loafers")}
             className="relative group overflow-hidden rounded-2xl shadow-lg cursor-pointer"
@@ -336,7 +329,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Derby */}
           <div
             onClick={() => navigate("/shop?category=Derby")}
             className="relative group overflow-hidden rounded-2xl shadow-lg cursor-pointer"
@@ -353,7 +345,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Oxford */}
           <div
             onClick={() => navigate("/shop?category=Oxford")}
             className="relative group overflow-hidden rounded-2xl shadow-lg cursor-pointer"
@@ -370,7 +361,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Heels */}
           <div
             onClick={() => navigate("/shop?category=Heels")}
             className="relative group overflow-hidden rounded-2xl shadow-lg cursor-pointer"
@@ -389,41 +379,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Brand Banner Section */}
       <section className="bg-[#d4af37] py-3 md:py-4 flex flex-wrap justify-center items-center gap-4 sm:gap-6 md:gap-8 text-black font-medium tracking-wide text-xs sm:text-sm md:text-base px-4">
-        {/* <span
-          onClick={() => navigate("/shop?brand=versace")}
-          className="hover:underline cursor-pointer"
-        >
-          VERSACE
-        </span>
-        <span
-          onClick={() => navigate("/shop?brand=zara")}
-          className="hover:underline cursor-pointer"
-        >
-          ZARA
-        </span>
-        <span
-          onClick={() => navigate("/shop?brand=gucci")}
-          className="hover:underline cursor-pointer"
-        >
-          GUCCI
-        </span>
-        <span
-          onClick={() => navigate("/shop?brand=prada")}
-          className="hover:underline cursor-pointer"
-        >
-          PRADA
-        </span>
-        <span
-          onClick={() => navigate("/shop?brand=calvin-klein")}
-          className="hover:underline cursor-pointer"
-        >
-          Calvin Klein
-        </span> */}
       </section>
 
-      {/* Newsletter Section */}
       <section className="bg-black text-white flex justify-center py-8 md:py-12 px-4">
         <div className="flex flex-col md:flex-row space-y-6 md:space-y-0 md:space-x-10 bg-[#111] rounded-2xl shadow-md p-6 md:p-8 w-full max-w-4xl">
           <div className="flex items-center justify-center text-center md:text-left">

@@ -57,7 +57,6 @@ const AdminLayout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Mobile Header - Always visible on small screens */}
       <header className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-black border-b border-yellow-600/20 z-50">
         <div className="h-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -76,7 +75,6 @@ const AdminLayout = ({ children }) => {
         </div>
       </header>
 
-      {/* Backdrop Overlay */}
       {isSidebarOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black/70 z-40"
@@ -87,7 +85,6 @@ const AdminLayout = ({ children }) => {
       )}
 
       <div className="flex pt-14 lg:pt-0 min-h-screen">
-        {/* Sidebar */}
         <aside
           className={`
             fixed lg:static
@@ -106,12 +103,10 @@ const AdminLayout = ({ children }) => {
             }
           `}
         >
-          {/* Desktop Logo */}
           <div className="hidden lg:flex items-center gap-3 p-6 border-b border-yellow-600/20">
             <span className="text-xl font-semibold text-yellow-400">Admin</span>
           </div>
 
-          {/* Navigation */}
           <nav className="p-4 space-y-1">
             {menuItems.map((item) => {
               const isActive =
@@ -151,7 +146,6 @@ const AdminLayout = ({ children }) => {
           </nav>
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 overflow-auto">
           <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">{children}</div>
         </main>

@@ -20,7 +20,7 @@ import LoginModal from "./modals/LoginModal";
 import RegisterModal from "./modals/RegisterModal";
 import AlertModal from "./modals/AlertModal";
 
-// Pages - User (Lazy loaded)
+// Pages - User
 const HomePage = lazy(() => import("./pages/user/HomePage"));
 const AboutPage = lazy(() => import("./pages/user/AboutPage"));
 const ContactPage = lazy(() => import("./pages/user/ContactPage"));
@@ -32,7 +32,7 @@ const OrdersPage = lazy(() => import("./pages/user/OrdersPage"));
 const ProfilePage = lazy(() => import("./pages/user/ProfilePage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
-// Pages - Admin (Lazy loaded)
+// Pages - Admin
 const AdminDashboard = lazy(() => import("./pages/admin/DashboardPage"));
 const AdminProducts = lazy(() => import("./pages/admin/ProductsPage"));
 const AdminUsers = lazy(() => import("./pages/admin/UsersPage"));
@@ -48,9 +48,7 @@ const LoadingFallback = () => (
   </div>
 );
 
-/**
- * ModalRoot Component
- */
+// ModalRoot Component
 function ModalRoot() {
   const { isOpen, modalType, closeModal, openModal, modalProps } = useModal();
 
@@ -84,9 +82,7 @@ function ModalRoot() {
   );
 }
 
-/*
- * Main App Component
- */
+// Main App Component
 function App() {
   return (
     <ThemeProvider>
@@ -104,11 +100,9 @@ function App() {
                 <ScrollToTop />
                 <Header />
                 <ModalRoot />
-                {/* <Breadcrumbs /> */}
                 <main id="main-content">
                   <Suspense fallback={<LoadingFallback />}>
                     <Routes>
-                      {/* User Routes */}
                       <Route path="/" element={<HomePage />} />
                       <Route path="/about" element={<AboutPage />} />
                       <Route path="/contact" element={<ContactPage />} />
@@ -119,7 +113,6 @@ function App() {
                       <Route path="/orders" element={<OrdersPage />} />
                       <Route path="/profile" element={<ProfilePage />} />
 
-                      {/* Admin Routes */}
                       <Route
                         path="/admin"
                         element={
@@ -161,7 +154,6 @@ function App() {
                         }
                       />
 
-                      {/* Fallback */}
                       <Route path="*" element={<NotFoundPage />} />
                     </Routes>
                   </Suspense>

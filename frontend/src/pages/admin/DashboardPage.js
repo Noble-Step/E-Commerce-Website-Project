@@ -63,7 +63,6 @@ const DashboardPage = () => {
   return (
     <AdminLayout>
       <div className="space-y-6 lg:space-y-8">
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
           {stats.map((stat, idx) => (
             <div
@@ -86,7 +85,6 @@ const DashboardPage = () => {
           ))}
         </div>
 
-        {/* Recent Orders */}
         <div className="bg-gray-900 rounded-xl lg:rounded-2xl p-4 lg:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
             <h2 className="text-lg lg:text-xl font-semibold text-white">

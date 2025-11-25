@@ -1,11 +1,8 @@
 const { body, param, validationResult, query } = require("express-validator");
 
-/**
- * Custom sanitizer to strip HTML tags and dangerous content
- */
+
 const stripHtml = (value) => {
   if (typeof value !== "string") return value;
-  // Remove HTML tags
   return value
     .replace(/<[^>]*>/g, "")
     .replace(/&lt;/g, "<")
@@ -16,10 +13,7 @@ const stripHtml = (value) => {
     .replace(/&#x2F;/g, "/");
 };
 
-/**
- * Validation middleware that checks for validation errors
- * If errors found, returns 400 with error details
- */
+
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -35,7 +29,6 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-// User Validation Rules
 const validateUserRegistration = [
   body("email")
     .isEmail()
@@ -148,7 +141,6 @@ const validateUserProfileUpdate = [
   handleValidationErrors,
 ];
 
-// Product Validation Rules
 const validateProductCreation = [
   body("name")
     .trim()
@@ -185,7 +177,6 @@ const validateProductCreation = [
           const parsed = JSON.parse(value);
           return Array.isArray(parsed);
         } catch (e) {
-          // fall through
         }
       }
       throw new Error("Sizes must be an array");
@@ -222,9 +213,8 @@ const validateProductUpdate = [
   body("images")
     .optional()
     .custom((value, { req }) => {
-      // For updates, images are optional. Accept either uploaded files or a provided images array.
       if (req.files && req.files.length > 0) return true;
-      if (!value) return true; // no images provided in body and no files uploaded
+      if (!value) return true; 
       if (Array.isArray(value) && value.length > 0) return true;
       return true;
     }),
@@ -237,7 +227,6 @@ const validateProductUpdate = [
           const parsed = JSON.parse(value);
           return Array.isArray(parsed);
         } catch (e) {
-          // fall through
         }
       }
       throw new Error("Sizes must be an array");
@@ -252,7 +241,6 @@ const validateProductId = [
   handleValidationErrors,
 ];
 
-// Review Validation Rules
 const validateReviewCreation = [
   body("productId")
     .matches(/^[0-9a-fA-F]{24}$/)
@@ -304,7 +292,6 @@ const validateReviewId = [
   handleValidationErrors,
 ];
 
-// Cart Validation Rules
 const validateCartAddition = [
   body("productId")
     .matches(/^[0-9a-fA-F]{24}$/)
@@ -326,12 +313,10 @@ const validateCartUpdate = [
   handleValidationErrors,
 ];
 
-// Order Validation Rules
 const validateOrderCreation = [
   body("items")
     .isArray({ min: 1 })
     .withMessage("Order must contain at least one item"),
-  // Validate each item in the items array
   body("items.*.productId")
     .matches(/^[0-9a-fA-F]{24}$/)
     .withMessage("Invalid product ID in order items"),
@@ -368,14 +353,12 @@ const validateOrderCreation = [
     .escape()
     .isLength({ min: 2 })
     .withMessage("Country must be at least 2 characters"),
-  // Payment details validation - method is required
   body("paymentDetails")
     .custom((value) => typeof value === "object" && value !== null)
     .withMessage("Payment details are required"),
   body("paymentDetails.method")
     .isIn(["card", "digitalWallet", "bankTransfer", "cashOnDelivery"])
     .withMessage("Invalid payment method"),
-  // Conditional validation based on payment method
   body("paymentDetails.method").custom((method, { req }) => {
     const paymentDetails = req.body.paymentDetails || {};
 
@@ -399,7 +382,6 @@ const validateOrderCreation = [
       if (!paymentDetails.walletEmail || !paymentDetails.walletEmail.trim()) {
         throw new Error("Email is required for digital wallet payments");
       }
-      // Validate email format
       const emailRegex = /\S+@\S+\.\S+/;
       if (!emailRegex.test(paymentDetails.walletEmail)) {
         throw new Error("Valid email is required for digital wallet payments");
@@ -424,18 +406,15 @@ const validateOrderCreation = [
           "Routing number is required for bank transfer payments"
         );
       }
-      // Validate routing number format (9 digits)
       if (!/^\d{9}$/.test(paymentDetails.routingNumber.trim())) {
         throw new Error("Routing number must be exactly 9 digits");
       }
     }
-    // Cash on Delivery: no additional validation needed
     return true;
   }),
   handleValidationErrors,
 ];
 
-// Order ID validation (for endpoints that take an order id)
 const validateOrderId = [
   param("id")
     .matches(/^[0-9a-fA-F]{24}$/)
@@ -443,7 +422,6 @@ const validateOrderId = [
   handleValidationErrors,
 ];
 
-// Query parameter validation for product filtering
 const validateProductQuery = [
   query("search")
     .optional()

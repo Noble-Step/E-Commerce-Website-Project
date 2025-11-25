@@ -109,8 +109,6 @@ const ProductsPage = () => {
       setShowModal(false);
       resetForm();
     } catch (error) {
-      // Prefer server-provided message when available (validation errors)
-      // Prefer detailed validation errors (field: message) when provided
       let serverMessage = null;
       if (
         error?.response?.data?.errors &&
@@ -206,7 +204,6 @@ const ProductsPage = () => {
           </button>
         </div>
 
-        {/* Products Table */}
         <div className="bg-gray-900 rounded-xl lg:rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px]">
@@ -314,7 +311,6 @@ const ProductsPage = () => {
         </div>
       </div>
 
-      {/* Product Form Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 rounded-xl lg:rounded-2xl p-4 lg:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -406,13 +402,11 @@ const ProductsPage = () => {
                 />
               </div>
 
-              {/* Images Section */}
               <div>
                 <label className="block text-xs lg:text-sm text-gray-400 mb-1">
                   Images *
                 </label>
 
-                {/* Existing Images (when editing) */}
                 {existingImages.length > 0 && (
                   <div className="mb-4 space-y-2">
                     <p className="text-xs text-gray-500">Existing Images:</p>
@@ -437,7 +431,6 @@ const ProductsPage = () => {
                   </div>
                 )}
 
-                {/* Selected New Images Preview */}
                 {selectedImages.length > 0 && (
                   <div className="mb-4 space-y-2">
                     <p className="text-xs text-gray-500">New Images:</p>
@@ -462,7 +455,6 @@ const ProductsPage = () => {
                   </div>
                 )}
 
-                {/* File Input */}
                 <input
                   type="file"
                   accept="image/*"
@@ -475,7 +467,6 @@ const ProductsPage = () => {
                 </p>
               </div>
 
-              {/* Sizes Section */}
               <div>
                 <label className="block text-xs lg:text-sm text-gray-400 mb-1">
                   Sizes (Optional)
@@ -543,7 +534,6 @@ const ProductsPage = () => {
         </div>
       )}
 
-      {/* Alert Modal */}
       {alertConfig && (
         <AlertModal
           isOpen={showAlert}

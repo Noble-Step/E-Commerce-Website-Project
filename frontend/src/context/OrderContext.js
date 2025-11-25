@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import API from "../services/api";
 import { useUser } from "./UserContext";
-// Remove this line: import { SAMPLE_ORDERS } from "../data/adminSamples";
 
 const storage = {
   get(key, fallback = []) {
@@ -22,7 +21,6 @@ const storage = {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (err) {
-      // no-op
     }
   },
 };
@@ -48,7 +46,6 @@ const normalizeStatus = (status = "Processing") => {
 
 const normalizeItem = (item = {}, idx, orderId = null) => {
   const sourceProduct = item.product || {};
-  // Generate stable ID: prefer existing IDs, otherwise use orderId + index for consistency
   const stableId = item._id || 
     item.id || 
     sourceProduct._id || 
@@ -73,8 +70,6 @@ const normalizeItem = (item = {}, idx, orderId = null) => {
 };
 
 const normalizeOrder = (order = {}) => {
-  // Generate stable ID: prefer existing IDs, use a stable fallback only if absolutely necessary
-  // Store the generated ID in the normalized object to ensure consistency
   const stableId = order._id || order.id || order.orderId;
   const id = stableId ? String(stableId) : `order-${order.user?._id || order.user?.id || 'guest'}-${order.createdAt || order.date || 'unknown'}`;
   
@@ -127,7 +122,7 @@ const OrderContext = createContext(null);
 // Order Provider
 export const OrderProvider = ({ children }) => {
   const { user } = useUser();
-  const [orders, setOrders] = useState(() => storage.get("orders", [])); // Changed from: storage.get("orders", seedOrders())
+  const [orders, setOrders] = useState(() => storage.get("orders", []));
   const [activeOrder, setActiveOrder] = useState(null);
   const [orderHistory, setOrderHistory] = useState(() =>
     storage.get("orderHistory", []).map((entry) => normalizeOrder(entry))
@@ -233,7 +228,6 @@ export const OrderProvider = ({ children }) => {
 
   const updateOrderStatus = async (orderId, status) => {
     try {
-      // Capture the previous order status before updating state
       const previousOrder = orders.find((order) => matchesOrderId(order, orderId));
       const previousStatus = previousOrder?.status || "Processing";
       
@@ -323,7 +317,6 @@ export const OrderProvider = ({ children }) => {
   );
 };
 
-// Order Hook
 export const useOrders = () => {
   const context = useContext(OrderContext);
   if (!context) {

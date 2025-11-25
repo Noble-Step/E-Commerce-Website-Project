@@ -31,7 +31,6 @@ const Header = () => {
       <header className="bg-black border-b border-yellow-500 relative z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex items-center justify-between py-3 sm:py-4 gap-2 sm:gap-4">
-            {/* Logo and Brand - Always visible */}
             <Link
               to="/"
               className="flex items-center gap-2 sm:gap-3 flex-shrink-0"
@@ -48,7 +47,6 @@ const Header = () => {
               </span>
             </Link>
 
-            {/* Desktop Navigation Bar (lg and above) */}
             <nav
               className="hidden lg:flex items-center gap-2 xl:gap-4"
               aria-label="Main navigation"
@@ -102,9 +100,7 @@ const Header = () => {
               })()}
             </nav>
 
-            {/* Right Side Actions - Compact on mobile */}
             <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              {/* Login/Register or Profile Button */}
               {user ? (
                 <button
                   onClick={() => navigate("/profile")}
@@ -116,7 +112,6 @@ const Header = () => {
                 </button>
               ) : (
                 <>
-                  {/* Show Login icon on small screens, text on larger */}
                   <Button
                     variant="ghost"
                     size="md"
@@ -148,7 +143,6 @@ const Header = () => {
                 </>
               )}
 
-              {/* Cart Button */}
               <button
                 onClick={handleCartClick}
                 className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-800 transition-colors relative"
@@ -171,7 +165,6 @@ const Header = () => {
                 )}
               </button>
 
-              {/* Burger Menu Button (Mobile and Tablet) */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="lg:hidden p-1.5 sm:p-2 rounded-lg transition-colors hover:bg-gray-800"
@@ -197,7 +190,6 @@ const Header = () => {
         <Breadcrumbs />
       </header>
 
-      {/* Overlay */}
       {isMenuOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-75 z-40 transition-opacity lg:hidden"
@@ -205,7 +197,6 @@ const Header = () => {
         />
       )}
 
-      {/* Sidebar Menu */}
       <div
         id="mobile-menu"
         className={`fixed top-0 right-0 h-full w-[85vw] sm:w-80 bg-black z-50 transform transition-transform duration-300 ease-in-out border-l border-yellow-500/20 lg:hidden ${
@@ -313,7 +304,6 @@ const Header = () => {
           </NavLink>
         </nav>
 
-        {/* Sidebar Footer */}
         <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 border-t border-yellow-500/20 bg-black">
           {user ? (
             <div className="space-y-2">

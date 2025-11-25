@@ -1,14 +1,10 @@
 const Review = require("../models/reviewModel");
 const Order = require("../models/orderModel");
 
-// @desc    Create new review
-// @route   POST /api/reviews
-// @access  Private
 const createReview = async (req, res) => {
   try {
     const { productId, rating, title, comment } = req.body;
 
-    // Check if user has purchased the product
     const orders = await Order.find({
       user: req.user._id,
       "items.product": productId,
@@ -17,7 +13,6 @@ const createReview = async (req, res) => {
 
     const isVerifiedPurchase = orders.length > 0;
 
-    // Check if user has already reviewed this product
     const existingReview = await Review.findOne({
       user: req.user._id,
       product: productId,
@@ -51,9 +46,6 @@ const createReview = async (req, res) => {
   }
 };
 
-// @desc    Get reviews for a product
-// @route   GET /api/reviews/product/:productId
-// @access  Public
 const getProductReviews = async (req, res) => {
   try {
     const reviews = await Review.find({ product: req.params.productId })
@@ -72,9 +64,6 @@ const getProductReviews = async (req, res) => {
   }
 };
 
-// @desc    Get recent reviews
-// @route   GET /api/reviews/recent
-// @access  Public
 const getRecentReviews = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 3;
@@ -96,9 +85,6 @@ const getRecentReviews = async (req, res) => {
   }
 };
 
-// @desc    Update a review
-// @route   PUT /api/reviews/:id
-// @access  Private
 const updateReview = async (req, res) => {
   try {
     const { rating, title, comment } = req.body;
@@ -111,7 +97,6 @@ const updateReview = async (req, res) => {
       });
     }
 
-    // Check if the review belongs to the user
     if (review.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
@@ -137,9 +122,6 @@ const updateReview = async (req, res) => {
   }
 };
 
-// @desc    Delete a review
-// @route   DELETE /api/reviews/:id
-// @access  Private
 const deleteReview = async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
@@ -151,7 +133,6 @@ const deleteReview = async (req, res) => {
       });
     }
 
-    // Check if the review belongs to the user or if user is admin
     if (
       review.user.toString() !== req.user._id.toString() &&
       !req.user.isAdmin

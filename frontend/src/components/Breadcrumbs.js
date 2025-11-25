@@ -2,10 +2,6 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
 
-/**
- * Breadcrumbs Component
- * Displays navigation breadcrumbs based on current route
- */
 const Breadcrumbs = () => {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter((x) => x);
@@ -26,29 +22,20 @@ const Breadcrumbs = () => {
     return nameMap[path] || path.charAt(0).toUpperCase() + path.slice(1);
   };
 
-  // Filter out IDs from breadcrumb display (numeric or alphanumeric IDs after "product")
-  // For product routes like /product/:id, filter out the ID part
   let breadcrumbItems = pathnames.filter((name, index) => {
-    // If we're on a product route and this is the ID part (index 1), filter it out
     if (pathnames[0] === "product" && index === 1) {
       return false;
     }
-    // Filter out purely numeric IDs
     return !name.match(/^\d+$/);
   });
 
-  // Add intermediate breadcrumb steps based on context
-  // If on product detail page, add "shop" before "product"
   if (pathnames[0] === "product" && pathnames.length > 1) {
-    // Check if "shop" is not already in the breadcrumb items
     if (!breadcrumbItems.includes("shop")) {
       breadcrumbItems = ["shop", ...breadcrumbItems];
     }
   }
 
-  // If on checkout page, add "cart" before "checkout"
   if (pathnames[0] === "checkout") {
-    // Check if "cart" is not already in the breadcrumb items
     if (!breadcrumbItems.includes("cart")) {
       breadcrumbItems = ["cart", ...breadcrumbItems];
     }
@@ -71,16 +58,12 @@ const Breadcrumbs = () => {
           </Link>
         </li>
         {breadcrumbItems.map((name, index) => {
-          // Build route path correctly for intermediate steps
           let routeTo;
           if (name === "shop" && pathnames[0] === "product") {
-            // If we're on product page and showing shop, link to /shop
             routeTo = "/shop";
           } else if (name === "cart" && pathnames[0] === "checkout") {
-            // If we're on checkout page and showing cart, link to /cart
             routeTo = "/cart";
           } else {
-            // For other items, build route from breadcrumb items
             routeTo = `/${breadcrumbItems.slice(0, index + 1).join("/")}`;
           }
           

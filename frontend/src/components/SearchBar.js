@@ -2,10 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 
-/**
- * SearchBar Component
- * Reusable search bar that navigates to /shop with search query params
- */
 const SearchBar = ({ className = "", placeholder = "Search products..." }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
